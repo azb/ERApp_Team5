@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="34dp"
+        android:layout_marginBottom="40dp"
         android:onClick="signUp"
         android:text="@string/button_signup" />
 
@@ -43,7 +43,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/passLogin"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="22dp"
         android:onClick="viewHome"
         android:text="@string/button_login" />
 

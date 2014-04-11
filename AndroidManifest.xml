@@ -1,48 +1,124 @@
-<?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="com.google.cloud.backend">
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.erapp.app"
+    android:versionCode="1"
+    android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="15" android:targetSdkVersion="16"/>
+    <uses-sdk
+        android:minSdkVersion="15"
+        android:targetSdkVersion="16" />
 
-    <permission android:name="com.google.cloud.backend.permission.C2D_MESSAGE" android:protectionLevel="signature"/>
+    <permission
+        android:name="com.google.cloud.backend.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="com.google.cloud.backend.permission.C2D_MESSAGE"/>
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
-    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.google.cloud.backend.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-    <application android:allowBackup="true" android:icon="@drawable/ic_launcher_guestbook" android:label="@string/app_name" android:theme="@style/AppTheme">
-        <meta-data android:name="com.google.android.gms.version" android:value="13" />
-        <activity android:configChanges="orientation|screenSize" android:label="@string/app_name" android:name="com.google.cloud.backend.sample.guestbook.GuestbookActivity">
+    <uses-feature android:name="android.hardware.camera" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/testicon"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="13" />
+
+        <activity
+            android:name="com.erapp.app.HomeActivity"
+            android:label="@string/app_name" >
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.google.cloud.backend.sample.guestbook.IntroductionActivity" android:parentActivityName="com.google.cloud.backend.sample.guestbook.GuestbookActivity" android:screenOrientation="portrait">
-            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value="com.google.cloud.backend.sample.guestbook.GuestbookActivity"/>
+        <activity
+            android:name="com.google.cloud.backend.sample.guestbook.IntroductionActivity"
+            android:parentActivityName="com.google.cloud.backend.sample.guestbook.GuestbookActivity"
+            android:screenOrientation="portrait" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.google.cloud.backend.sample.guestbook.GuestbookActivity" />
+        </activity>
+        <activity
+            android:name="com.erapp.app.AddExpenseActivity"
+            android:label="@string/title_activity_display_message"
+            android:parentActivityName="com.erapp.app.HomeActivity"
+            android:windowSoftInputMode="stateHidden" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.app.MainActivity" />
+        </activity>
+        <activity
+            android:name="com.erapp.app.ViewExpensesActivity"
+            android:label="@string/title_activity_view_expenses"
+            android:parentActivityName="com.erapp.app.HomeActivity"
+            android:windowSoftInputMode="stateHidden" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.app.MainActivity" />
+        </activity>
+        <activity
+            android:name="LoginActivity"
+            android:label="@string/title_activity_login"
+            android:windowSoftInputMode="stateHidden" >
+        </activity>
+        <activity
+            android:name="SignupActivity"
+            android:parentActivityName="com.erapp.app.LoginActivity"
+            android:windowSoftInputMode="stateHidden" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.app.Loginctivity" />
+        </activity>
+        <activity
+            android:name="CorrectExpensesActivity"
+            android:parentActivityName="com.erapp.app.HomeActivity"
+            android:windowSoftInputMode="stateHidden" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.app.MainActivity" />
+        </activity>
+        <activity
+            android:name="AddEmployeeActivity"
+            android:parentActivityName="com.erapp.app.HomeActivity"
+            android:windowSoftInputMode="stateHidden" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.app.MainActivity" />
         </activity>
 
-<!--
+        <!--
  You can replace the android:name attribute above with one of the the following
  lines to choose a sample:
 
             android:name="com.google.cloud.backend.sample.guestbook.GuestbookActivity"
-            android:name="com.google.cloud.backend.sample.socialtalk.SocialTalkActivity"
--->
+            android:name="com.google.cloud.backend.sample.socialtalk.SocialTalkActivity"
+        -->
 
-        <service android:name="com.google.cloud.backend.GCMIntentService"/>
+        <service android:name="com.google.cloud.backend.GCMIntentService" />
 
-        <receiver android:name="com.google.android.gcm.GCMBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND">
+        <receiver
+            android:name="com.google.android.gcm.GCMBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION"/>
-                <category android:name="com.google.cloud.solutions.sampleapps.mobilebackend"/>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
+                <category android:name="com.google.cloud.solutions.sampleapps.mobilebackend" />
             </intent-filter>
         </receiver>
 
-        <service android:name="com.google.cloud.backend.GCMIntentService"/>
-        
-</application>
+        <service android:name="com.google.cloud.backend.GCMIntentService" />
+    </application>
 
 </manifest>

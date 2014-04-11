@@ -57,4 +57,5 @@
 	    <string name="check_corporate">Corporate</string>
 	    <string name="button_adds">Add</string>
 	    <string name="hint_date">MM/DD/YYYY</string>
+	    <string name="button_addfromfile">Add from file</string>
 </resources>

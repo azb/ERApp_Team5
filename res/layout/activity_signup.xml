@@ -17,7 +17,7 @@
         android:inputType="textEmailAddress" />
 
     <EditText
-        android:id="@+id/passLogin"
+        android:id="@+id/addExpensePrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/emailLogin"
@@ -31,7 +31,7 @@
         android:id="@+id/editText3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/passLogin"
+        android:layout_below="@+id/addExpensePrice"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
         android:ems="10"
