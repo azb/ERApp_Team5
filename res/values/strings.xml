@@ -1,22 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <string name="app_name">Cloud Guest Book</string>
+    <string name="app_name">ERApp</string>
+    <string name="action_settings">Settings</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_add">Add Expense</string>
+    <string name="title_activity_display_message">Add Expense</string>
     <string name="hello_world">Hello world!</string>
-    <string name="switch_account">Switch Account</string>
-    <string name="view_intro">View Intro</string>
-    <string name="skip_intro">Skip intro next time</string>
-    <string name="announce_success">YOU HAVE JOINED</string>
-    <string name="announce_fail">CONNECTION FAILED</string>
-    <string name="send">Send</string>
-    <string name="send_message">sendMessage</string>
-    <string name="empty_string"></string>
-    <string name="no_messages">No messages yet</string>
-
-    <string name="intro_1_title">Guest Book Sample App</string>
-    <string name="intro_1_dscrp">Welcome to the Mobile Backend Starter sample guestbook Android app. This simple app allows users to send messages to other instances of the app running on Android or iOS devices. Play with this application to get started.  There is no additional backend coding required.</string>
-    <string name="intro_2_title">Mobile Backend Starter</string>
-    <string name="intro_2_dscrp">The guestbook app uses the Mobile Backend Starter for messaging and user authentication. The backend also provides a cloud datastore, with public and private objects, and a subscription service to give your apps real time interactivity.</string>
-    <string name="intro_3_title">Now it’s your turn</string>
-    <string name="intro_3_dscrp">Play around with this app and the source code to become familiar with the Mobile Backend Starter. When you are ready, replace the Guestbook sample code with your own app or game code.</string>
+    <string name="action_logout">Logout</string>
+	<string name="title_activity_view_expenses">Expenses</string>
+	<string name="button_submit">Submit</string>
+	<string name="button_camera">Camera</string>
+	<string name="button_gallery">Gallery</string>
+	<string name="text_item">Product/Service</string>
+	<string name="text_price">Price</string>
+	<string name="text_category">Category</string>
+    <string name="spinner_category">Category</string>
+	<string name="text_comment">Comments</string>
+	<string name="title_activity_login">Log In</string>
+	
+	<string-array name="entries_category">
+	    <item>Select category</item>
+	    <item>Education</item>
+        <item>Food</item>
+        <item>Office</item>
+        <item>Travel</item>
+    </string-array>
+    
+	<string-array name="entries_currency">
+	    <item>USD</item>
+	    <item>CAD</item>
+	    <item>AUD</item>
+	    <item>GBP</item>
+	    <item>EUR</item>
+	    <item>JPY</item>
+	    <item>CNY</item>
+	    <item>MXN</item>
+	</string-array>
+	
+	<string-array name="entries_payment">
+	    <item>Credit/Debit</item>
+	    <item>Cash</item>
+	    <item>Check</item>
+	</string-array>
+	    <string name="text_email">Email</string>
+	    <string name="text_password">Password</string>
+	    <string name="button_login">Log In</string>
+	    <string name="button_signup">Sign Up</string>
+	    <string name="button_correction">Correct Expenses</string>
+	    <string name="button_addEmployee">Add Employee</string>
+	    <string name="text_verifyPass">Verify password</string>
+	    <string name="text_Merchant">Merchant</string>
+	    <string name="text_Description">Description</string>
+	    <string name="text_Payment">Payment Type</string>
+	    <string name="text_date">Date</string>
+	    <string name="check_corporate">Corporate</string>
+	    <string name="button_adds">Add</string>
+	    <string name="hint_date">MM/DD/YYYY</string>
 </resources>

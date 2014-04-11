@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="a">Add Expense</string>
+    <string name="mm">.</string>
+    <string name="button_view">View Expenses</string>
+    <string name="Save"></string>
+</resources>

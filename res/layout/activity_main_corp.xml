@@ -40,4 +40,14 @@
         android:text="@string/button_correction"
         android:onClick="correctExpense" />
 
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/buttonSignup"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="25dp"
+        android:text="@string/button_addEmployee"
+        android:onClick="addEmployee" />
+
 </RelativeLayout>
