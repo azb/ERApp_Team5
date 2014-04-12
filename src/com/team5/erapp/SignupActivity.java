@@ -1,6 +1,6 @@
-package com.erapp.app;
+package com.team5.erapp;
 
-import com.erapp.app.R;
+import com.team5.erapp.R;
 
 import android.app.Activity;
 import android.content.Intent;

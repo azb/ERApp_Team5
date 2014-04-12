@@ -1,11 +1,11 @@
-package com.erapp.app;
+package com.team5.erapp;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import com.erapp.app.R;
+import com.team5.erapp.R;
 
 import android.animation.Animator;
 import android.annotation.SuppressLint;

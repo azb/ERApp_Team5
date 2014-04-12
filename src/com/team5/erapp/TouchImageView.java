@@ -8,13 +8,13 @@
  * Extends Android ImageView to include pinch zooming, panning, fling and double tap zoom.
  */
 
-package com.erapp.app;
+package com.team5.erapp;
 
-import static com.erapp.app.TouchImageView.State.ANIMATE_ZOOM;
-import static com.erapp.app.TouchImageView.State.DRAG;
-import static com.erapp.app.TouchImageView.State.FLING;
-import static com.erapp.app.TouchImageView.State.NONE;
-import static com.erapp.app.TouchImageView.State.ZOOM;
+import static com.team5.erapp.TouchImageView.State.ANIMATE_ZOOM;
+import static com.team5.erapp.TouchImageView.State.DRAG;
+import static com.team5.erapp.TouchImageView.State.FLING;
+import static com.team5.erapp.TouchImageView.State.NONE;
+import static com.team5.erapp.TouchImageView.State.ZOOM;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;

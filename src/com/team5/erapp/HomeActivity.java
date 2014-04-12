@@ -1,6 +1,6 @@
-package com.erapp.app;
+package com.team5.erapp;
 
-import com.erapp.app.R;
+import com.team5.erapp.R;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -27,7 +27,7 @@ public class HomeActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.activity_home);
-		if(!corpCheck()) {
+		if(!adminCheck()) {
 			Button addEmployee = (Button) findViewById(R.id.button_addEmployee);
 			addEmployee.setVisibility(View.GONE);
 		}
@@ -61,10 +61,10 @@ public class HomeActivity extends Activity {
 		return (settings.getBoolean("logged", false));
 	}
 	
-	public boolean corpCheck() {
+	public boolean adminCheck() {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		//return true for now
-		return (settings.getBoolean("corporate", true));
+		return (settings.getBoolean("admin", true));
 	}
 
 	public void addExpense(View view) {

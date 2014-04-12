@@ -1,27 +1,3 @@
-# view AndroidManifest.xml #generated:91
--keep class com.erapp.app.AddEmployeeActivity { <init>(...); }
-
-# view AndroidManifest.xml #generated:52
--keep class com.erapp.app.AddExpenseActivity { <init>(...); }
-
-# view AndroidManifest.xml #generated:83
--keep class com.erapp.app.CorrectExpensesActivity { <init>(...); }
-
-# view AndroidManifest.xml #generated:35
--keep class com.erapp.app.HomeActivity { <init>(...); }
-
-# view AndroidManifest.xml #generated:70
--keep class com.erapp.app.LoginActivity { <init>(...); }
-
-# view AndroidManifest.xml #generated:75
--keep class com.erapp.app.SignupActivity { <init>(...); }
-
-# view res/layout/activity_add_expenses.xml #generated:20
--keep class com.erapp.app.TouchImageView { <init>(...); }
-
-# view AndroidManifest.xml #generated:61
--keep class com.erapp.app.ViewExpensesActivity { <init>(...); }
-
 # view AndroidManifest.xml #generated:113
 -keep class com.google.android.gcm.GCMBroadcastReceiver { <init>(...); }
 
@@ -32,19 +8,43 @@
 # view AndroidManifest.xml #generated:44
 -keep class com.google.cloud.backend.sample.guestbook.IntroductionActivity { <init>(...); }
 
-# onClick res/layout/activity_home.xml #generated:51
+# view AndroidManifest.xml #generated:91
+-keep class com.team5.erapp.AddEmployeeActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:52
+-keep class com.team5.erapp.AddExpenseActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:83
+-keep class com.team5.erapp.CorrectExpensesActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:35
+-keep class com.team5.erapp.HomeActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:70
+-keep class com.team5.erapp.LoginActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:75
+-keep class com.team5.erapp.SignupActivity { <init>(...); }
+
+# view res/layout/activity_add_expenses.xml #generated:20
+-keep class com.team5.erapp.TouchImageView { <init>(...); }
+
+# view AndroidManifest.xml #generated:61
+-keep class com.team5.erapp.ViewExpensesActivity { <init>(...); }
+
+# onClick res/layout/activity_home.xml #generated:48
 -keepclassmembers class * { *** addEmployee(...); }
 
-# onClick res/layout/activity_home.xml #generated:13
+# onClick res/layout/activity_home.xml #generated:14
 -keepclassmembers class * { *** addExpense(...); }
 
-# onClick res/layout/activity_home.xml #generated:39
+# onClick res/layout/activity_home.xml #generated:37
 -keepclassmembers class * { *** correctExpense(...); }
 
 # onClick res/layout/activity_login.xml #generated:8
 -keepclassmembers class * { *** signUp(...); }
 
-# onClick res/layout/activity_home.xml #generated:27
+# onClick res/layout/activity_home.xml #generated:26
 -keepclassmembers class * { *** viewExpense(...); }
 
 # onClick res/layout/activity_login.xml #generated:40
