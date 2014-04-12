@@ -72,6 +72,12 @@
 				    android:inputType="number|text" />
 
 				<Spinner
+				    android:id="@+id/addExpensePayment"
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:entries="@array/entries_payment" />
+
+				<Spinner
 				    android:id="@+id/addExpenseCurrency"
 				    android:layout_width="wrap_content"
 				    android:layout_height="wrap_content"
@@ -87,27 +93,29 @@
 			    android:text="@string/text_Merchant"
 			    android:textSize="18sp" />
 
-			<EditText
-			    android:id="@+id/addExpenseMerchant"
-			    android:layout_width="match_parent"
-			    android:layout_height="wrap_content"
-			    android:ems="10"
-			    android:inputType="text" />
+			<LinearLayout
+			    android:layout_width="fill_parent"
+			    android:layout_height="match_parent" >
 
-			<TextView
-			    android:id="@+id/textView3"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:layout_marginTop="15dp"
-			    android:text="@string/text_category"
-			    android:textSize="18sp" />
+				<EditText
+				    android:id="@+id/addExpenseMerchant"
+				    android:layout_width="0dp"
+				    android:layout_height="wrap_content"
+				    android:layout_weight="1"
+				    android:ems="10"
+				    android:inputType="text" >
 
-			<Spinner
-			    android:id="@+id/addExpenseCategory"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:entries="@array/entries_category"
-			    android:prompt="@string/spinner_category" />
+				    <requestFocus />
+				</EditText>
+
+				<Spinner
+				    android:id="@+id/addExpenseCategory"
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:entries="@array/entries_category"
+				    android:prompt="@string/spinner_category" />
+
+			</LinearLayout>
 
 			<TextView
 			    android:id="@+id/textView5"
@@ -123,20 +131,6 @@
 			    android:layout_height="wrap_content"
 			    android:ems="10"
 			    android:inputType="text" />
-
-			<TextView
-			    android:id="@+id/textView4"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:layout_marginTop="15dp"
-			    android:text="@string/text_Payment"
-			    android:textSize="18sp" />
-
-			<Spinner
-			    android:id="@+id/addExpensePayment"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:entries="@array/entries_payment" />
 
 			<TextView
 			    android:id="@+id/textView7"
