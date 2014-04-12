@@ -102,7 +102,7 @@
  lines to choose a sample:
 
             android:name="com.google.cloud.backend.sample.guestbook.GuestbookActivity"
-            android:name="com.google.cloud.backend.sample.socialtalk.SocialTalkActivity"
+            android:name="com.google.cloud.backend.sample.socialtalk.SocialTalkActivity"
         -->
 
         <service android:name="com.google.cloud.backend.GCMIntentService" />

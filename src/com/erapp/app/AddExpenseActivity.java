@@ -17,6 +17,7 @@ import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -32,6 +33,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -39,7 +41,7 @@ import android.widget.Toast;
 
 public class AddExpenseActivity extends Activity {
 
-	private ImageView photoImage = null;
+	private TouchImageView photoImage = null;
 	private EditText price;
 	private EditText merchant;
 	private EditText description;
@@ -49,6 +51,7 @@ public class AddExpenseActivity extends Activity {
 	private Spinner category;
 	private Spinner payment;
 	private Uri fileUri = null;
+	private LinearLayout img;
 	
 	private static final String TAG = "CallCamera";
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQ = 0;
@@ -90,7 +93,7 @@ public class AddExpenseActivity extends Activity {
 //				Intent intent = new Intent();
 //			}
 //		});
-		photoImage = (ImageView) findViewById(R.id.imageView1);
+		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
 		merchant = (EditText) findViewById(R.id.addExpenseMerchant);
 		description = (EditText) findViewById(R.id.addExpenseDescription);
@@ -99,6 +102,8 @@ public class AddExpenseActivity extends Activity {
 		currency = (Spinner) findViewById(R.id.addExpenseCurrency);
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
+		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
+		img.setBackgroundColor(Color.GRAY);
 	}
 
 	@Override
@@ -150,8 +155,9 @@ public class AddExpenseActivity extends Activity {
 			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
 			String picturePath = cursor.getString(columnIndex);
 			cursor.close();
-			photoImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+			photoImage.setScaleType(ImageView.ScaleType.MATRIX);
 			photoImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+			img.setBackgroundColor(Color.TRANSPARENT);
 		} else if (resultCode == RESULT_CANCELED) {
 			Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
 		}
@@ -181,8 +187,9 @@ public class AddExpenseActivity extends Activity {
 					.getAbsolutePath());
 			BitmapDrawable drawable = new BitmapDrawable(this.getResources(),
 					bitmap);
-			photoImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+			photoImage.setScaleType(ImageView.ScaleType.MATRIX);
 			photoImage.setImageDrawable(drawable);
+			img.setBackgroundColor(Color.TRANSPARENT);
 		}
 	}
 

@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/checkBox1"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="18dp"
+        android:layout_marginTop="15dp"
         android:onClick="viewHome"
         android:text="@string/button_signup" />
 
@@ -54,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/emailLogin"
         android:layout_below="@+id/editText3"
-        android:layout_marginTop="17dp"
+        android:layout_marginTop="15dp"
         android:text="@string/check_corporate" />
 
 </RelativeLayout>
