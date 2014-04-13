@@ -101,12 +101,12 @@ public class AddExpenseActivity extends Activity {
 			}
 		});
 		submit = (Button) findViewById(R.id.button_save);
-		submit.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onSendButtonPressed(v);
-			}
-		});
+//		submit.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				onSendButtonPressed(v);
+//			}
+//		});
 
 		//initialize variables
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
