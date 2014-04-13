@@ -1,16 +1,26 @@
 package com.team5.erapp;
 
+import java.io.IOException;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import com.google.cloud.backend.core.CloudBackendFragment;
+import com.google.cloud.backend.core.CloudBackendFragment.OnListener;
+import com.google.cloud.backend.core.CloudCallbackHandler;
+import com.google.cloud.backend.core.CloudEntity;
+import com.google.cloud.backend.core.CloudQuery.Order;
+import com.google.cloud.backend.core.CloudQuery.Scope;
+import com.google.cloud.backend.core.Consts;
 import com.team5.erapp.R;
 
 import android.animation.Animator;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -52,12 +62,17 @@ public class AddExpenseActivity extends Activity {
 	private Spinner payment;
 	private Uri fileUri = null;
 	private LinearLayout img;
+	private Button submit;
+	
+    private CloudBackendFragment mProcessingFragment;
+    private FragmentManager mFragmentManager;
 	
 	private static final String TAG = "CallCamera";
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQ = 0;
 	private static final int SELECT_IMAGE = 1;
 	private static final int SUBMIT = 2;
 	public static final String PREFS_NAME = "MyPrefsFile";
+	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
 
 	@SuppressLint("NewApi")
 	@Override
@@ -85,14 +100,15 @@ public class AddExpenseActivity extends Activity {
 				startActivityForResult(i, SELECT_IMAGE);
 			}
 		});
-//		Button submit = (Button) findViewById(R.id.button_save);
-//		submit.setOnClickListener(new View.OnClickListener() {
-//	
-//			@Override
-//			public void onClick(View v) {
-//				Intent intent = new Intent();
-//			}
-//		});
+		submit = (Button) findViewById(R.id.button_save);
+		submit.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				onSendButtonPressed(v);
+			}
+		});
+
+		//initialize variables
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
 		merchant = (EditText) findViewById(R.id.addExpenseMerchant);
@@ -100,10 +116,14 @@ public class AddExpenseActivity extends Activity {
 		date = (EditText) findViewById(R.id.addExpenseDate);
 		comments = (EditText) findViewById(R.id.addExpenseComments);
 		currency = (Spinner) findViewById(R.id.addExpenseCurrency);
+		currency.setSelection(7);
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
 		img.setBackgroundColor(Color.GRAY);
+		mFragmentManager = getFragmentManager();
+		
+		initiateFragments();
 	}
 
 	@Override
@@ -115,17 +135,16 @@ public class AddExpenseActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.action_logout:
-			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putBoolean("logged", false);
-			editor.commit();
-			Intent intent = new Intent(this, LoginActivity.class);
-			startActivity(intent);
-			return true;
-
-		default:
-			return super.onOptionsItemSelected(item);
+			case R.id.action_logout:
+				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+				SharedPreferences.Editor editor = settings.edit();
+				editor.putBoolean("logged", false);
+				editor.commit();
+				Intent intent = new Intent(this, LoginActivity.class);
+				startActivity(intent);
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
 		}
 	}
 
@@ -193,4 +212,50 @@ public class AddExpenseActivity extends Activity {
 		}
 	}
 
+	private void initiateFragments() {
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        // Check to see if we have retained the fragment which handles
+        // asynchronous backend calls
+        mProcessingFragment = (CloudBackendFragment) mFragmentManager.
+                findFragmentByTag(PROCESSING_FRAGMENT_TAG);
+        // If not retained (or first time running), create a new one
+        if (mProcessingFragment == null) {
+            mProcessingFragment = new CloudBackendFragment();
+            mProcessingFragment.setRetainInstance(true);
+            fragmentTransaction.add(mProcessingFragment, PROCESSING_FRAGMENT_TAG);
+        }
+//        fragmentTransaction.commit();
+    }
+	
+	/**
+     * onClick method.
+     */
+    public void onSendButtonPressed(View view) {
+
+        // create a CloudEntity with the new post
+        CloudEntity newPost = new CloudEntity("Guestbook");
+        newPost.put("message", price.getText().toString());
+
+        // create a response handler that will receive the result or an error
+        CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
+            @Override
+            public void onComplete(final CloudEntity result) {
+                //mPosts.add(0, result);
+                //updateGuestbookView();
+            }
+
+            @Override
+            public void onError(final IOException exception) {
+                handleEndpointException(exception);
+            }
+        };
+
+        // execute the insertion with the handler
+        mProcessingFragment.getCloudBackend().insert(newPost, handler);
+    }
+    
+    private void handleEndpointException(IOException e) {
+        Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+    }
+    
 }

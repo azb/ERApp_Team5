@@ -8,54 +8,61 @@
     <string name="title_activity_display_message">Add Expense</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_logout">Logout</string>
-	<string name="title_activity_view_expenses">Expenses</string>
-	<string name="button_submit">Submit</string>
-	<string name="button_camera">Camera</string>
-	<string name="button_gallery">Gallery</string>
-	<string name="text_item">Product/Service</string>
-	<string name="text_price">Price</string>
-	<string name="text_category">Category</string>
+    <string name="title_activity_view_expenses">Expenses</string>
+    <string name="button_submit">Submit</string>
+    <string name="button_camera">Camera</string>
+    <string name="button_gallery">Gallery</string>
+    <string name="text_item">Product/Service</string>
+    <string name="text_price">Price</string>
+    <string name="text_category">Category</string>
     <string name="spinner_category">Category</string>
-	<string name="text_comment">Comments</string>
-	<string name="title_activity_login">Log In</string>
-	
-	<string-array name="entries_category">
-	    <item>Select category</item>
-	    <item>Education</item>
+    <string name="text_comment">Comment</string>
+    <string name="title_activity_login">Log In</string>
+    <string name="title_activity_signup">Sign Up</string>
+    <string name="title_activity_addEmployee">Add Employee</string>
+    <string name="title_activity_correctExpenses">Correct Expenses</string>
+    <string name="text_email">Email</string>
+    <string name="text_password">Password</string>
+    <string name="button_login">Log In</string>
+    <string name="button_signup">Sign Up</string>
+    <string name="button_correction">Correct Expenses</string>
+    <string name="button_addEmployee">Add Employee</string>
+    <string name="text_verifyPass">Verify password</string>
+    <string name="text_Merchant">Merchant</string>
+    <string name="text_Description">Description</string>
+    <string name="text_Payment">Payment Type</string>
+    <string name="text_date">Date</string>
+    <string name="check_corporate">Corporate</string>
+    <string name="button_adds">Add</string>
+    <string name="hint_date">MM/DD/YYYY</string>
+    <string name="button_addfromfile">Add from file</string>
+
+    <string-array name="entries_category">
+        <item>Category</item>
+        <item>Entertainment</item>
+        <item>Education</item>
         <item>Food</item>
+        <item>Fuel</item>
+        <item>Lodging</item>
         <item>Office</item>
-        <item>Travel</item>
+        <item>Phone</item>
+        <item>Transportation</item>
     </string-array>
-    
-	<string-array name="entries_currency">
-	    <item>USD</item>
-	    <item>CAD</item>
-	    <item>AUD</item>
-	    <item>GBP</item>
-	    <item>EUR</item>
-	    <item>JPY</item>
-	    <item>CNY</item>
-	    <item>MXN</item>
-	</string-array>
-	
-	<string-array name="entries_payment">
-	    <item>Credit/Debit</item>
-	    <item>Cash</item>
-	    <item>Check</item>
-	</string-array>
-	    <string name="text_email">Email</string>
-	    <string name="text_password">Password</string>
-	    <string name="button_login">Log In</string>
-	    <string name="button_signup">Sign Up</string>
-	    <string name="button_correction">Correct Expenses</string>
-	    <string name="button_addEmployee">Add Employee</string>
-	    <string name="text_verifyPass">Verify password</string>
-	    <string name="text_Merchant">Merchant</string>
-	    <string name="text_Description">Description</string>
-	    <string name="text_Payment">Payment Type</string>
-	    <string name="text_date">Date</string>
-	    <string name="check_corporate">Corporate</string>
-	    <string name="button_adds">Add</string>
-	    <string name="hint_date">MM/DD/YYYY</string>
-	    <string name="button_addfromfile">Add from file</string>
+    <string-array name="entries_currency">
+        <item>AUD</item>
+        <item>CAD</item>
+        <item>CNY</item>
+        <item>EUR</item>
+        <item>GBP</item>
+        <item>JPY</item>
+        <item>MXN</item>
+        <item>USD</item>
+    </string-array>
+    <string-array name="entries_payment">
+        <item>Credit/Debit</item>
+        <item>Cash</item>
+        <item>Check</item>
+        <item>Transfer</item>
+    </string-array>
+
 </resources>
