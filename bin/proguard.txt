@@ -1,8 +1,8 @@
-# view AndroidManifest.xml #generated:113
+# view AndroidManifest.xml #generated:102
 -keep class com.google.android.gcm.GCMBroadcastReceiver { <init>(...); }
 
-# view AndroidManifest.xml #generated:111
-# view AndroidManifest.xml #generated:124
+# view AndroidManifest.xml #generated:100
+# view AndroidManifest.xml #generated:113
 -keep class com.google.cloud.backend.GCMIntentService { <init>(...); }
 
 # view AndroidManifest.xml #generated:44

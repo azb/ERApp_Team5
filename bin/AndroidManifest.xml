@@ -97,14 +97,6 @@
                 android:value="com.example.app.MainActivity" />
         </activity>
 
-        <!--
- You can replace the android:name attribute above with one of the the following
- lines to choose a sample:
-
-            android:name="com.google.cloud.backend.sample.guestbook.GuestbookActivity"
-            android:name="com.google.cloud.backend.sample.socialtalk.SocialTalkActivity"
-        -->
-
         <service android:name="com.google.cloud.backend.GCMIntentService" />
 
         <receiver

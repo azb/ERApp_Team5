@@ -5,6 +5,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import com.google.cloud.backend.core.CloudBackendFragment;
@@ -50,14 +51,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class AddExpenseActivity extends Activity {
+public class AddExpenseActivity extends Activity implements OnListener {
 
 	private TouchImageView photoImage = null;
 	private EditText price;
 	private EditText merchant;
 	private EditText description;
 	private EditText date;
-	private EditText comments;
+	private EditText comment;
 	private Spinner currency;
 	private Spinner category;
 	private Spinner payment;
@@ -70,6 +71,8 @@ public class AddExpenseActivity extends Activity {
 
 	public static final String PREFS_NAME = "MyPrefsFile";
 	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
+	private static final String BROADCAST_PROP_DURATION = "duration";
+	private static final String BROADCAST_PROP_MESSAGE = "message";
 	private static final String TAG = "CallCamera";
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQ = 0;
 	private static final int SELECT_IMAGE = 1;
@@ -91,7 +94,7 @@ public class AddExpenseActivity extends Activity {
 		merchant = (EditText) findViewById(R.id.addExpenseMerchant);
 		description = (EditText) findViewById(R.id.addExpenseDescription);
 		date = (EditText) findViewById(R.id.addExpenseDate);
-		comments = (EditText) findViewById(R.id.addExpenseComments);
+		comment = (EditText) findViewById(R.id.addExpenseComments);
 		currency = (Spinner) findViewById(R.id.addExpenseCurrency);
 		currency.setSelection(7);
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
@@ -109,12 +112,12 @@ public class AddExpenseActivity extends Activity {
 		date.setText(new StringBuilder().append(mm + 1).append("/").append(dd)
 				.append("/").append(yy));
 
-		// submit.setOnClickListener(new View.OnClickListener() {
-		// @Override
-		// public void onClick(View v) {
-		// onSendButtonPressed(v);
-		// }
-		// });
+		submit.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				onSendButtonPressed(v);
+			}
+		});
 
 		Button callCameraButton = (Button) findViewById(R.id.button_camera);
 		callCameraButton.setOnClickListener(new View.OnClickListener() {
@@ -135,7 +138,7 @@ public class AddExpenseActivity extends Activity {
 				startActivityForResult(i, SELECT_IMAGE);
 			}
 		});
-		
+
 		initiateFragments();
 	}
 
@@ -239,7 +242,7 @@ public class AddExpenseActivity extends Activity {
 			fragmentTransaction.add(mProcessingFragment,
 					PROCESSING_FRAGMENT_TAG);
 		}
-//		fragmentTransaction.commit();
+		fragmentTransaction.commit();
 	}
 
 	/**
@@ -248,15 +251,25 @@ public class AddExpenseActivity extends Activity {
 	public void onSendButtonPressed(View view) {
 
 		// create a CloudEntity with the new post
-		CloudEntity newPost = new CloudEntity("Guestbook");
-		newPost.put("message", price.getText().toString());
+		CloudEntity newPost = new CloudEntity("ERApp");
+		newPost.setOwner("Test");
+		newPost.setCreatedBy("Test");
+		newPost.setUpdatedBy("Test");
+		newPost.put("price", price.getText().toString());
+		newPost.put("merchant", merchant.getText().toString());
+		newPost.put("description", description.getText().toString());
+		newPost.put("date", date.getText().toString());
+		newPost.put("comment", comment.getText().toString());
+		newPost.put("currency", currency.getSelectedItem().toString());
+		newPost.put("payment", payment.getSelectedItem().toString());
+		if (!category.getSelectedItem().toString().equals("Category")) {
+			newPost.put("category", category.getSelectedItem().toString());
+		}
 
 		// create a response handler that will receive the result or an error
 		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
-				// mPosts.add(0, result);
-				// updateGuestbookView();
 			}
 
 			@Override
@@ -273,4 +286,24 @@ public class AddExpenseActivity extends Activity {
 		Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
 	}
 
+	/**
+	 * Method called via OnListener in {@link CloudBackendFragment}.
+	 */
+	@Override
+	public void onCreateFinished() {
+	}
+
+	/**
+	 * Method called via OnListener in {@link CloudBackendFragment}.
+	 */
+	@Override
+	public void onBroadcastMessageReceived(List<CloudEntity> l) {
+		for (CloudEntity e : l) {
+			String message = (String) e.get(BROADCAST_PROP_MESSAGE);
+			int duration = Integer.parseInt((String) e
+					.get(BROADCAST_PROP_DURATION));
+			Toast.makeText(this, message, duration).show();
+			Log.i(Consts.TAG, "A message was recieved with content: " + message);
+		}
+	}
 }
