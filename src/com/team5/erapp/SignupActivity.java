@@ -11,7 +11,7 @@ import android.widget.CheckBox;
 
 public class SignupActivity extends Activity{
 	
-	public static final String PREFS_NAME = "MyPrefsFile";
+	private static final String PREFS_NAME = "MyPrefsFile";
 	
 	@Override
     protected void onCreate(Bundle savedInstanceState) {

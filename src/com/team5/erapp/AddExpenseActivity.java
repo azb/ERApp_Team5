@@ -69,14 +69,13 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
 
-	public static final String PREFS_NAME = "MyPrefsFile";
+	private static final String PREFS_NAME = "MyPrefsFile";
 	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
 	private static final String BROADCAST_PROP_DURATION = "duration";
 	private static final String BROADCAST_PROP_MESSAGE = "message";
 	private static final String TAG = "CallCamera";
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQ = 0;
 	private static final int SELECT_IMAGE = 1;
-	private static final int SUBMIT = 2;
 
 	@SuppressLint("NewApi")
 	@Override
@@ -249,21 +248,19 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	 * onClick method.
 	 */
 	public void onSendButtonPressed(View view) {
-
-		// create a CloudEntity with the new post
-		CloudEntity newPost = new CloudEntity("ERApp");
-		newPost.setOwner("Test");
-		newPost.setCreatedBy("Test");
-		newPost.setUpdatedBy("Test");
-		newPost.put("price", price.getText().toString());
-		newPost.put("merchant", merchant.getText().toString());
-		newPost.put("description", description.getText().toString());
-		newPost.put("date", date.getText().toString());
-		newPost.put("comment", comment.getText().toString());
-		newPost.put("currency", currency.getSelectedItem().toString());
-		newPost.put("payment", payment.getSelectedItem().toString());
+		CloudEntity expense = new CloudEntity("ERApp");
+		expense.setOwner("Test");
+		expense.setCreatedBy("Test");
+		expense.setUpdatedBy("Test");
+		expense.put("price", price.getText().toString());
+		expense.put("merchant", merchant.getText().toString());
+		expense.put("description", description.getText().toString());
+		expense.put("date", date.getText().toString());
+		expense.put("comment", comment.getText().toString());
+		expense.put("currency", currency.getSelectedItem().toString());
+		expense.put("payment", payment.getSelectedItem().toString());
 		if (!category.getSelectedItem().toString().equals("Category")) {
-			newPost.put("category", category.getSelectedItem().toString());
+			expense.put("category", category.getSelectedItem().toString());
 		}
 
 		// create a response handler that will receive the result or an error
@@ -279,7 +276,12 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		};
 
 		// execute the insertion with the handler
-		mProcessingFragment.getCloudBackend().insert(newPost, handler);
+		mProcessingFragment.getCloudBackend().insert(expense, handler);
+		
+		Intent intent = new Intent(this, HomeActivity.class);
+		startActivity(intent);
+		Toast.makeText(this, "Submitted",
+				Toast.LENGTH_LONG).show();
 	}
 
 	private void handleEndpointException(IOException e) {
@@ -298,12 +300,5 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	 */
 	@Override
 	public void onBroadcastMessageReceived(List<CloudEntity> l) {
-		for (CloudEntity e : l) {
-			String message = (String) e.get(BROADCAST_PROP_MESSAGE);
-			int duration = Integer.parseInt((String) e
-					.get(BROADCAST_PROP_DURATION));
-			Toast.makeText(this, message, duration).show();
-			Log.i(Consts.TAG, "A message was recieved with content: " + message);
-		}
 	}
 }

@@ -29,7 +29,7 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.cloud.backend.GCMIntentService;
+//import com.google.cloud.backend.GCMIntentService;
 import com.google.cloud.backend.core.CloudQuery.Order;
 import com.google.cloud.backend.core.CloudQuery.Scope;
 
@@ -70,7 +70,7 @@ public class CloudBackendAsync extends CloudBackend {
 
         // registering GCM
         if (this.application != null) {
-            GCMIntentService.getRegistrationId(this.application);
+//            GCMIntentService.getRegistrationId(this.application);
         }
     }
 
@@ -263,7 +263,7 @@ public class CloudBackendAsync extends CloudBackend {
 
                 // set regId (this may blocks until registration finishes)
                 if (application != null) {
-                    query.setRegId(GCMIntentService.getRegistrationId(application));
+//                    query.setRegId(GCMIntentService.getRegistrationId(application));
                 }
 
                 // execute query

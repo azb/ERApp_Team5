@@ -59,7 +59,7 @@
         <item>USD</item>
     </string-array>
     <string-array name="entries_payment">
-        <item>Credit/Debit</item>
+        <item>Card</item>
         <item>Cash</item>
         <item>Check</item>
         <item>Transfer</item>

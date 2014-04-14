@@ -29,7 +29,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.cloud.backend.GCMIntentService;
+//import com.google.cloud.backend.GCMIntentService;
 
 /**
  * An {@link Fragment} class that allows hosting Activities to access the
@@ -103,8 +103,8 @@ public class CloudBackendFragment extends Fragment {
 
         signInAndSubscribe(false);
 
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMsgReceiver,
-                new IntentFilter(GCMIntentService.BROADCAST_ON_MESSAGE));
+//        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mMsgReceiver,
+//                new IntentFilter(GCMIntentService.BROADCAST_ON_MESSAGE));
     }
 
     @Override
@@ -162,7 +162,7 @@ public class CloudBackendFragment extends Fragment {
                 new CloudCallbackHandler<List<CloudEntity>>() {
                     @Override
                     public void onComplete(List<CloudEntity> results) {
-                        callback.onBroadcastMessageReceived(results);
+                    	callback.onBroadcastMessageReceived(results);
                     }
                 };
         mCloudBackend.subscribeToCloudMessage(

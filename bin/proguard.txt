@@ -1,35 +1,35 @@
-# view AndroidManifest.xml #generated:102
+# view AndroidManifest.xml #generated:101
 -keep class com.google.android.gcm.GCMBroadcastReceiver { <init>(...); }
 
-# view AndroidManifest.xml #generated:100
-# view AndroidManifest.xml #generated:113
+# view AndroidManifest.xml #generated:112
+# view AndroidManifest.xml #generated:99
 -keep class com.google.cloud.backend.GCMIntentService { <init>(...); }
 
-# view AndroidManifest.xml #generated:44
+# view AndroidManifest.xml #generated:43
 -keep class com.google.cloud.backend.sample.guestbook.IntroductionActivity { <init>(...); }
 
-# view AndroidManifest.xml #generated:91
+# view AndroidManifest.xml #generated:90
 -keep class com.team5.erapp.AddEmployeeActivity { <init>(...); }
 
-# view AndroidManifest.xml #generated:52
+# view AndroidManifest.xml #generated:51
 -keep class com.team5.erapp.AddExpenseActivity { <init>(...); }
 
-# view AndroidManifest.xml #generated:83
+# view AndroidManifest.xml #generated:82
 -keep class com.team5.erapp.CorrectExpensesActivity { <init>(...); }
 
-# view AndroidManifest.xml #generated:35
+# view AndroidManifest.xml #generated:34
 -keep class com.team5.erapp.HomeActivity { <init>(...); }
 
-# view AndroidManifest.xml #generated:70
+# view AndroidManifest.xml #generated:69
 -keep class com.team5.erapp.LoginActivity { <init>(...); }
 
-# view AndroidManifest.xml #generated:75
+# view AndroidManifest.xml #generated:74
 -keep class com.team5.erapp.SignupActivity { <init>(...); }
 
 # view res/layout/activity_add_expenses.xml #generated:20
 -keep class com.team5.erapp.TouchImageView { <init>(...); }
 
-# view AndroidManifest.xml #generated:61
+# view AndroidManifest.xml #generated:60
 -keep class com.team5.erapp.ViewExpensesActivity { <init>(...); }
 
 # onClick res/layout/activity_home.xml #generated:48
