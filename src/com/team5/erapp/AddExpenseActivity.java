@@ -3,6 +3,7 @@ package com.team5.erapp;
 import java.io.IOException;
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -63,16 +64,16 @@ public class AddExpenseActivity extends Activity {
 	private Uri fileUri = null;
 	private LinearLayout img;
 	private Button submit;
-	
-    private CloudBackendFragment mProcessingFragment;
-    private FragmentManager mFragmentManager;
-	
+
+	private CloudBackendFragment mProcessingFragment;
+	private FragmentManager mFragmentManager;
+
+	public static final String PREFS_NAME = "MyPrefsFile";
+	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
 	private static final String TAG = "CallCamera";
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQ = 0;
 	private static final int SELECT_IMAGE = 1;
 	private static final int SUBMIT = 2;
-	public static final String PREFS_NAME = "MyPrefsFile";
-	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
 
 	@SuppressLint("NewApi")
 	@Override
@@ -82,33 +83,9 @@ public class AddExpenseActivity extends Activity {
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		this.getWindow().setSoftInputMode(
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-		Button callCameraButton = (Button) findViewById(R.id.button_camera);
-		callCameraButton.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
-				Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-				fileUri = Uri.fromFile(getOutputPhotoFile());
-				i.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-				startActivityForResult(i, CAPTURE_IMAGE_ACTIVITY_REQ);
-			}
-		});
-		Button callGalleryButton = (Button) findViewById(R.id.button_gallery);
-		callGalleryButton.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
-				Intent i = new Intent(
-						Intent.ACTION_PICK,
-						android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-				startActivityForResult(i, SELECT_IMAGE);
-			}
-		});
-		submit = (Button) findViewById(R.id.button_save);
-//		submit.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				onSendButtonPressed(v);
-//			}
-//		});
 
-		//initialize variables
+		// initialize variables
+		submit = (Button) findViewById(R.id.button_save);
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
 		merchant = (EditText) findViewById(R.id.addExpenseMerchant);
@@ -120,8 +97,44 @@ public class AddExpenseActivity extends Activity {
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
-		img.setBackgroundColor(Color.GRAY);
 		mFragmentManager = getFragmentManager();
+
+		img.setBackgroundColor(Color.GRAY);
+
+		final Calendar c = Calendar.getInstance();
+		int yy = c.get(Calendar.YEAR);
+		int mm = c.get(Calendar.MONTH);
+		int dd = c.get(Calendar.DAY_OF_MONTH);
+
+		date.setText(new StringBuilder().append(mm + 1).append("/").append(dd)
+				.append("/").append(yy));
+
+		// submit.setOnClickListener(new View.OnClickListener() {
+		// @Override
+		// public void onClick(View v) {
+		// onSendButtonPressed(v);
+		// }
+		// });
+
+		Button callCameraButton = (Button) findViewById(R.id.button_camera);
+		callCameraButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
+				Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+				fileUri = Uri.fromFile(getOutputPhotoFile());
+				i.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
+				startActivityForResult(i, CAPTURE_IMAGE_ACTIVITY_REQ);
+			}
+		});
+
+		Button callGalleryButton = (Button) findViewById(R.id.button_gallery);
+		callGalleryButton.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View view) {
+				Intent i = new Intent(
+						Intent.ACTION_PICK,
+						android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+				startActivityForResult(i, SELECT_IMAGE);
+			}
+		});
 		
 		initiateFragments();
 	}
@@ -135,16 +148,16 @@ public class AddExpenseActivity extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.action_logout:
-				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-				SharedPreferences.Editor editor = settings.edit();
-				editor.putBoolean("logged", false);
-				editor.commit();
-				Intent intent = new Intent(this, LoginActivity.class);
-				startActivity(intent);
-				return true;
-			default:
-				return super.onOptionsItemSelected(item);
+		case R.id.action_logout:
+			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putBoolean("logged", false);
+			editor.commit();
+			Intent intent = new Intent(this, LoginActivity.class);
+			startActivity(intent);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
 		}
 	}
 
@@ -162,7 +175,7 @@ public class AddExpenseActivity extends Activity {
 				showPhoto(photoUri.getPath());
 			} else if (resultCode == RESULT_CANCELED) {
 				Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
-			} 
+			}
 		}
 		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK
 				&& null != data) {
@@ -213,49 +226,51 @@ public class AddExpenseActivity extends Activity {
 	}
 
 	private void initiateFragments() {
-        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-        // Check to see if we have retained the fragment which handles
-        // asynchronous backend calls
-        mProcessingFragment = (CloudBackendFragment) mFragmentManager.
-                findFragmentByTag(PROCESSING_FRAGMENT_TAG);
-        // If not retained (or first time running), create a new one
-        if (mProcessingFragment == null) {
-            mProcessingFragment = new CloudBackendFragment();
-            mProcessingFragment.setRetainInstance(true);
-            fragmentTransaction.add(mProcessingFragment, PROCESSING_FRAGMENT_TAG);
-        }
-//        fragmentTransaction.commit();
-    }
-	
+		FragmentTransaction fragmentTransaction = mFragmentManager
+				.beginTransaction();
+		// Check to see if we have retained the fragment which handles
+		// asynchronous backend calls
+		mProcessingFragment = (CloudBackendFragment) mFragmentManager
+				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
+		// If not retained (or first time running), create a new one
+		if (mProcessingFragment == null) {
+			mProcessingFragment = new CloudBackendFragment();
+			mProcessingFragment.setRetainInstance(true);
+			fragmentTransaction.add(mProcessingFragment,
+					PROCESSING_FRAGMENT_TAG);
+		}
+//		fragmentTransaction.commit();
+	}
+
 	/**
-     * onClick method.
-     */
-    public void onSendButtonPressed(View view) {
+	 * onClick method.
+	 */
+	public void onSendButtonPressed(View view) {
 
-        // create a CloudEntity with the new post
-        CloudEntity newPost = new CloudEntity("Guestbook");
-        newPost.put("message", price.getText().toString());
+		// create a CloudEntity with the new post
+		CloudEntity newPost = new CloudEntity("Guestbook");
+		newPost.put("message", price.getText().toString());
 
-        // create a response handler that will receive the result or an error
-        CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
-            @Override
-            public void onComplete(final CloudEntity result) {
-                //mPosts.add(0, result);
-                //updateGuestbookView();
-            }
+		// create a response handler that will receive the result or an error
+		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
+			@Override
+			public void onComplete(final CloudEntity result) {
+				// mPosts.add(0, result);
+				// updateGuestbookView();
+			}
 
-            @Override
-            public void onError(final IOException exception) {
-                handleEndpointException(exception);
-            }
-        };
+			@Override
+			public void onError(final IOException exception) {
+				handleEndpointException(exception);
+			}
+		};
 
-        // execute the insertion with the handler
-        mProcessingFragment.getCloudBackend().insert(newPost, handler);
-    }
-    
-    private void handleEndpointException(IOException e) {
-        Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
-    }
-    
+		// execute the insertion with the handler
+		mProcessingFragment.getCloudBackend().insert(newPost, handler);
+	}
+
+	private void handleEndpointException(IOException e) {
+		Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+	}
+
 }
