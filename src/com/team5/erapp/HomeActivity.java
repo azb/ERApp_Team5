@@ -23,6 +23,7 @@ public class HomeActivity extends Activity {
 		if (!logCheck()) {
 			Intent intent = new Intent(this, LoginActivity.class);
 			startActivity(intent);
+			finish();
 		}
 		super.onCreate(savedInstanceState);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -49,13 +50,13 @@ public class HomeActivity extends Activity {
 			editor.commit();
 			Intent intent = new Intent(this, LoginActivity.class);
 			startActivity(intent);
+			finish();
 			return true;
-
 		default:
 			return super.onOptionsItemSelected(item);
 		}
 	}
-
+	
 	public boolean logCheck() {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		return (settings.getBoolean("logged", false));

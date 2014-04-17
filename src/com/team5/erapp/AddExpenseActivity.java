@@ -12,14 +12,9 @@ import com.google.cloud.backend.core.CloudBackendFragment;
 import com.google.cloud.backend.core.CloudBackendFragment.OnListener;
 import com.google.cloud.backend.core.CloudCallbackHandler;
 import com.google.cloud.backend.core.CloudEntity;
-import com.google.cloud.backend.core.CloudQuery.Order;
-import com.google.cloud.backend.core.CloudQuery.Scope;
-import com.google.cloud.backend.core.Consts;
 import com.team5.erapp.R;
 
-import android.animation.Animator;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
@@ -32,23 +27,17 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.NavUtils;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class AddExpenseActivity extends Activity implements OnListener {
@@ -65,14 +54,13 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	private Uri fileUri = null;
 	private LinearLayout img;
 	private Button submit;
-
+	private SharedPreferences settings;
+	
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
 
-	private static final String PREFS_NAME = "MyPrefsFile";
+	public static final String PREFS_NAME = "MyPrefsFile";
 	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
-	private static final String BROADCAST_PROP_DURATION = "duration";
-	private static final String BROADCAST_PROP_MESSAGE = "message";
 	private static final String TAG = "CallCamera";
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQ = 0;
 	private static final int SELECT_IMAGE = 1;
@@ -86,7 +74,6 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		this.getWindow().setSoftInputMode(
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-		// initialize variables
 		submit = (Button) findViewById(R.id.button_save);
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
@@ -95,12 +82,13 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		date = (EditText) findViewById(R.id.addExpenseDate);
 		comment = (EditText) findViewById(R.id.addExpenseComments);
 		currency = (Spinner) findViewById(R.id.addExpenseCurrency);
-		currency.setSelection(7);
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
 		mFragmentManager = getFragmentManager();
-
+		settings = getSharedPreferences(PREFS_NAME, 0);
+		
+		currency.setSelection(settings.getInt("index", 7));	
 		img.setBackgroundColor(Color.GRAY);
 
 		final Calendar c = Calendar.getInstance();
@@ -141,28 +129,6 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		initiateFragments();
 	}
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.action_logout:
-			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putBoolean("logged", false);
-			editor.commit();
-			Intent intent = new Intent(this, LoginActivity.class);
-			startActivity(intent);
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
-		}
-	}
-
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQ) {
 			if (resultCode == RESULT_OK) {
@@ -181,9 +147,9 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		}
 		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK
 				&& null != data) {
-			Uri selectedImage = data.getData();
+			fileUri = data.getData();
 			String[] filePathColumn = { MediaStore.Images.Media.DATA };
-			Cursor cursor = getContentResolver().query(selectedImage,
+			Cursor cursor = getContentResolver().query(fileUri,
 					filePathColumn, null, null, null);
 			cursor.moveToFirst();
 			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
@@ -230,11 +196,8 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	private void initiateFragments() {
 		FragmentTransaction fragmentTransaction = mFragmentManager
 				.beginTransaction();
-		// Check to see if we have retained the fragment which handles
-		// asynchronous backend calls
 		mProcessingFragment = (CloudBackendFragment) mFragmentManager
 				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
-		// If not retained (or first time running), create a new one
 		if (mProcessingFragment == null) {
 			mProcessingFragment = new CloudBackendFragment();
 			mProcessingFragment.setRetainInstance(true);
@@ -248,6 +211,13 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	 * onClick method.
 	 */
 	public void onSendButtonPressed(View view) {
+		if (price.getText().toString().equals("")
+				&& merchant.getText().toString().equals("")
+				&& description.getText().toString().equals("")
+				&& comment.getText().toString().equals("")) {
+			Toast.makeText(this, "Nothing to submit", Toast.LENGTH_SHORT).show();
+			return;
+		}
 		CloudEntity expense = new CloudEntity("ERApp");
 		expense.setOwner("Test");
 		expense.setCreatedBy("Test");
@@ -262,8 +232,11 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		if (!category.getSelectedItem().toString().equals("Category")) {
 			expense.put("category", category.getSelectedItem().toString());
 		}
-
-		// create a response handler that will receive the result or an error
+		
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putInt("index", currency.getSelectedItemPosition());
+		editor.commit();
+		
 		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
@@ -275,13 +248,11 @@ public class AddExpenseActivity extends Activity implements OnListener {
 			}
 		};
 
-		// execute the insertion with the handler
 		mProcessingFragment.getCloudBackend().insert(expense, handler);
-		
+
 		Intent intent = new Intent(this, HomeActivity.class);
 		startActivity(intent);
-		Toast.makeText(this, "Submitted",
-				Toast.LENGTH_LONG).show();
+		Toast.makeText(this, "Submitted", Toast.LENGTH_LONG).show();
 	}
 
 	private void handleEndpointException(IOException e) {

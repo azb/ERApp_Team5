@@ -24,7 +24,8 @@ public class SignupActivity extends Activity{
     	SharedPreferences.Editor editor = settings.edit();
     	editor.putBoolean("logged", true);
     	editor.commit();
-    	Intent intent = new Intent(this, HomeActivity.class);
+    	Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+    	intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
     	startActivity(intent);
     }
 }
