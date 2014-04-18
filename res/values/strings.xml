@@ -27,6 +27,7 @@
     <string name="button_signup">Sign Up</string>
     <string name="button_correction">Correct Expenses</string>
     <string name="button_addEmployee">Add Employee</string>
+    <string name="button_view">View Expenses</string>
     <string name="text_verifyPass">Verify password</string>
     <string name="text_Merchant">Merchant</string>
     <string name="text_Description">Description</string>
@@ -64,5 +65,6 @@
         <item>Check</item>
         <item>Transfer</item>
     </string-array>
+        <string name="hint_name">Name</string>
 
 </resources>
