@@ -7,21 +7,32 @@
     android:orientation="vertical" >
 
     <EditText
-        android:id="@+id/emailLogin"
+        android:id="@+id/nameSignup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="100dp"
         android:ems="10"
+        android:hint="@string/hint_name"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/emailSignup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/nameSignup"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp"
+        android:ems="10"
         android:hint="@string/text_email"
         android:inputType="textEmailAddress" />
 
     <EditText
-        android:id="@+id/addExpensePrice"
+        android:id="@+id/passwordSignup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/emailLogin"
+        android:layout_below="@+id/emailSignup"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
         android:ems="10"
@@ -29,10 +40,10 @@
         android:inputType="textPassword" />
 
     <EditText
-        android:id="@+id/editText3"
+        android:id="@+id/verifyPassSignup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/addExpensePrice"
+        android:layout_below="@+id/passwordSignup"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="15dp"
         android:ems="10"
@@ -40,7 +51,7 @@
         android:inputType="textPassword" />
 
     <Button
-        android:id="@+id/buttonLogin"
+        android:id="@+id/buttonSignup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/checkBox1"
@@ -53,8 +64,8 @@
         android:id="@+id/checkBox1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/emailLogin"
-        android:layout_below="@+id/editText3"
+        android:layout_alignLeft="@+id/emailSignup"
+        android:layout_below="@+id/verifyPassSignup"
         android:layout_marginTop="15dp"
         android:text="@string/check_corporate" />
 
