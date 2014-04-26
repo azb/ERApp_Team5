@@ -27,7 +27,6 @@
 -keep class com.team5.erapp.SignupActivity { <init>(...); }
 
 # view res/layout/activity_add_expenses.xml #generated:20
-# view res/layout/activity_correct_expenses.xml #generated:20
 -keep class com.team5.erapp.TouchImageView { <init>(...); }
 
 # view AndroidManifest.xml #generated:60
@@ -49,6 +48,6 @@
 -keepclassmembers class * { *** viewExpense(...); }
 
 # onClick res/layout/activity_login.xml #generated:41
-# onClick res/layout/activity_signup.xml #generated:42
+# onClick res/layout/activity_signup.xml #generated:53
 -keepclassmembers class * { *** viewHome(...); }
 
