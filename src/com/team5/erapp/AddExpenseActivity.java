@@ -55,7 +55,7 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	private LinearLayout img;
 	private Button submit;
 	private SharedPreferences settings;
-	
+
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
 
@@ -87,8 +87,8 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
-		
-		currency.setSelection(settings.getInt("index", 7));	
+
+		currency.setSelection(settings.getInt("index", 7));
 		img.setBackgroundColor(Color.GRAY);
 
 		final Calendar c = Calendar.getInstance();
@@ -149,8 +149,8 @@ public class AddExpenseActivity extends Activity implements OnListener {
 				&& null != data) {
 			fileUri = data.getData();
 			String[] filePathColumn = { MediaStore.Images.Media.DATA };
-			Cursor cursor = getContentResolver().query(fileUri,
-					filePathColumn, null, null, null);
+			Cursor cursor = getContentResolver().query(fileUri, filePathColumn,
+					null, null, null);
 			cursor.moveToFirst();
 			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
 			String picturePath = cursor.getString(columnIndex);
@@ -211,14 +211,18 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	 * onClick method.
 	 */
 	public void onSendButtonPressed(View view) {
-		if (price.getText().toString().equals("")
-				&& merchant.getText().toString().equals("")
-				&& description.getText().toString().equals("")
-				&& comment.getText().toString().equals("")) {
-			Toast.makeText(this, "Nothing to submit", Toast.LENGTH_SHORT).show();
+		if (price.getText().toString().isEmpty()
+				&& merchant.getText().toString().isEmpty()
+				&& description.getText().toString().isEmpty()
+				&& comment.getText().toString().isEmpty()) {
+			Toast.makeText(this, "Nothing to submit", Toast.LENGTH_SHORT)
+					.show();
 			return;
 		}
+		// change CloudEntity Object to include user's name/email or company's
+		// name/email
 		CloudEntity expense = new CloudEntity("ERApp");
+		expense.put("incomplete", false);
 		expense.setOwner("Test");
 		expense.setCreatedBy("Test");
 		expense.setUpdatedBy("Test");
@@ -228,15 +232,38 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		expense.put("date", date.getText().toString());
 		expense.put("comment", comment.getText().toString());
 		expense.put("currency", currency.getSelectedItem().toString());
+		expense.put("currencyPos", currency.getSelectedItemPosition());
 		expense.put("payment", payment.getSelectedItem().toString());
-		if (!category.getSelectedItem().toString().equals("Category")) {
-			expense.put("category", category.getSelectedItem().toString());
+		expense.put("paymentPos", payment.getSelectedItemPosition());
+		expense.put("category", category.getSelectedItem().toString());
+		expense.put("categoryPos", category.getSelectedItemPosition());		
+		if (price.getText().toString().isEmpty()) {
+			expense.put("incomplete", true);
+			expense.put("price", "");
 		}
-		
+		if (merchant.getText().toString().isEmpty()) {
+			expense.put("incomplete", true);
+			expense.put("merchant", "");
+		}
+		if (description.getText().toString().isEmpty()) {
+			expense.put("incomplete", true);
+			expense.put("description", "");
+		}
+		if (date.getText().toString().isEmpty()) {
+			expense.put("incomplete", true);
+			expense.put("date", "");
+		}
+		if (comment.getText().toString().isEmpty()) {
+			expense.put("incomplete", true);
+			expense.put("comment", "");
+		}
+		if (category.getSelectedItem().toString().equals("Category")) {
+			expense.put("incomplete", true);
+		}
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putInt("index", currency.getSelectedItemPosition());
 		editor.commit();
-		
+
 		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {

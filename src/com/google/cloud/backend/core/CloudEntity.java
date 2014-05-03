@@ -18,13 +18,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.api.client.util.DateTime;
 import com.google.cloud.backend.android.mobilebackend.model.EntityDto;
 
 /**
  * A class that represents a cloud entity on App Engine Datastore.
  */
-public class CloudEntity {
+public class CloudEntity implements Parcelable {
 
     /**
      * Name of the auto-generated property that has a time stamp of creation.
@@ -190,4 +193,45 @@ public class CloudEntity {
         return obj.hashCode() == this.hashCode();
     }
 
+
+    protected CloudEntity(Parcel in) {
+        id = in.readString();
+        long tmpCreatedAt = in.readLong();
+        createdAt = tmpCreatedAt != -1 ? new Date(tmpCreatedAt) : null;
+        long tmpUpdatedAt = in.readLong();
+        updatedAt = tmpUpdatedAt != -1 ? new Date(tmpUpdatedAt) : null;
+        createdBy = in.readString();
+        updatedBy = in.readString();
+        kindName = in.readString();
+        owner = in.readString();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeLong(createdAt != null ? createdAt.getTime() : -1L);
+        dest.writeLong(updatedAt != null ? updatedAt.getTime() : -1L);
+        dest.writeString(createdBy);
+        dest.writeString(updatedBy);
+        dest.writeString(kindName);
+        dest.writeString(owner);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<CloudEntity> CREATOR = new Parcelable.Creator<CloudEntity>() {
+        @Override
+        public CloudEntity createFromParcel(Parcel in) {
+            return new CloudEntity(in);
+        }
+
+        @Override
+        public CloudEntity[] newArray(int size) {
+            return new CloudEntity[size];
+        }
+    };
 }

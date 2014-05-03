@@ -97,6 +97,15 @@
                 android:value="com.example.app.MainActivity" />
         </activity>
 
+        <activity
+            android:name="ViewIndvExpenseActivity"
+            android:parentActivityName="com.team5.erapp.HomeActivity"
+            android:windowSoftInputMode="stateHidden" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.app.MainActivity" />
+        </activity>
+        
         <service android:name="com.google.cloud.backend.GCMIntentService" />
 
         <receiver
