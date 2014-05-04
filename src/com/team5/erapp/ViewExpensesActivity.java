@@ -182,7 +182,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				handleEndpointException(exception);
 			}
 		};
-		CloudEntity expense = new CloudEntity("ERApp");
+		
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		if(settings.getString("sort", "date").equals("date")) {
 			mProcessingFragment.getCloudBackend().listByKind("ERApp",

@@ -16,7 +16,9 @@ public class HomeActivity extends Activity {
 
 	public final static String EXTRA_MESSAGE = "com.example.app.MESSAGE";
 	public static final String PREFS_NAME = "MyPrefsFile";
-
+	SharedPreferences settings;
+	SharedPreferences.Editor editor;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		if (!logCheck()) {
@@ -31,6 +33,11 @@ public class HomeActivity extends Activity {
 			Button addEmployee = (Button) findViewById(R.id.button_addEmployee);
 			addEmployee.setVisibility(View.GONE);
 		}
+		
+		settings = getSharedPreferences(PREFS_NAME, 0);
+		editor = settings.edit();
+		editor.putString("sort", "date");
+		editor.commit();
 	}
 
 	@Override
@@ -43,8 +50,6 @@ public class HomeActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_logout:
-			SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-			SharedPreferences.Editor editor = settings.edit();
 			editor.putBoolean("logged", false);
 			editor.commit();
 			Intent intent = new Intent(this, LoginActivity.class);
@@ -73,17 +78,11 @@ public class HomeActivity extends Activity {
 	}
 
 	public void viewExpense(View view) {
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString("sort", "date");
 		Intent intent = new Intent(this, ViewExpensesActivity.class);
 		startActivity(intent);
 	}
 
 	public void correctExpense(View view) {
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString("sort", "date");
 		Intent intent = new Intent(this, CorrectExpensesActivity.class);
 		startActivity(intent);
 	}
