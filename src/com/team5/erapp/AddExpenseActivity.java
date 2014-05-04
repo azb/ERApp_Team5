@@ -74,7 +74,7 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		this.getWindow().setSoftInputMode(
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-		submit = (Button) findViewById(R.id.button_save);
+		submit = (Button) findViewById(R.id.button_submit);
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
 		merchant = (EditText) findViewById(R.id.addExpenseMerchant);
@@ -223,9 +223,9 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		// name/email
 		CloudEntity expense = new CloudEntity("ERApp");
 		expense.put("incomplete", false);
-		expense.setOwner("Test");
-		expense.setCreatedBy("Test");
-		expense.setUpdatedBy("Test");
+		expense.setOwner("Name");
+		expense.setCreatedBy("Name");
+		expense.setUpdatedBy("Name");
 		expense.put("price", price.getText().toString());
 		expense.put("merchant", merchant.getText().toString());
 		expense.put("description", description.getText().toString());
@@ -278,8 +278,9 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		mProcessingFragment.getCloudBackend().insert(expense, handler);
 
 		Intent intent = new Intent(this, HomeActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
-		Toast.makeText(this, "Submitted", Toast.LENGTH_LONG).show();
+		Toast.makeText(this, "Submitted", Toast.LENGTH_SHORT).show();
 	}
 
 	private void handleEndpointException(IOException e) {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+<item
+        android:id="@+id/action_sortDate"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_sortDate"/>
+
+<item
+        android:id="@+id/action_sortPrice"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/action_sortPrice"/>
+
+</menu>

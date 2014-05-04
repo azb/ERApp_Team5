@@ -17,7 +17,7 @@ import com.google.cloud.backend.core.CloudEntity;
  * the guestbook. Layout uses row.xml.
  *
  */
-public class ExpenseAdapter extends ArrayAdapter<CloudEntity> {
+public class ViewExpenseAdapter extends ArrayAdapter<CloudEntity> {
 
     private LayoutInflater mInflater;
 
@@ -28,7 +28,7 @@ public class ExpenseAdapter extends ArrayAdapter<CloudEntity> {
      * @param textViewResourceId
      * @param objects
      */
-    public ExpenseAdapter(Context context, int textViewResourceId, List<CloudEntity> objects) {
+    public ViewExpenseAdapter(Context context, int textViewResourceId, List<CloudEntity> objects) {
         super(context, textViewResourceId, objects);
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }

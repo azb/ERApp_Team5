@@ -25,6 +25,7 @@ public class LoginActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.activity_login);
 		inputEmail = (EditText) findViewById(R.id.emailLogin);
 		inputPassword = (EditText) findViewById(R.id.addExpensePrice);

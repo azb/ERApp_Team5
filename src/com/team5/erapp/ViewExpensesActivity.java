@@ -1,17 +1,3 @@
-/*
- * Copyright (c) 2013 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- */
-
 package com.team5.erapp;
 
 import java.io.IOException;
@@ -23,18 +9,14 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.team5.erapp.R;
@@ -44,7 +26,6 @@ import com.google.cloud.backend.core.CloudCallbackHandler;
 import com.google.cloud.backend.core.CloudEntity;
 import com.google.cloud.backend.core.CloudQuery.Order;
 import com.google.cloud.backend.core.CloudQuery.Scope;
-import com.google.cloud.backend.core.Consts;
 
 /**
  * Shows a list of expenses.
@@ -62,6 +43,8 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
+
+	public static final String PREFS_NAME = "MyPrefsFile";
 
 	/**
 	 * A list of posts to be displayed
@@ -107,6 +90,44 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		initiateFragments();
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.sort, menu);
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		if(settings.getString("sort", "date").equals("date")) {
+			menu.getItem(0).setVisible(false);
+			menu.getItem(1).setVisible(true);
+		} else if(settings.getString("sort", "date").equals("price")) {
+			menu.getItem(0).setVisible(true);
+			menu.getItem(1).setVisible(false);
+		}
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		switch (item.getItemId()) {
+		case R.id.action_sortDate:
+			editor.putString("sort", "date");
+			editor.commit();			
+			finish();
+			overridePendingTransition(0, 0);
+			startActivity(getIntent());
+			return true;			
+		case R.id.action_sortPrice:
+			editor.putString("sort", "price");
+			editor.commit();
+			finish();
+			overridePendingTransition(0, 0);
+			startActivity(getIntent());
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
 	/**
 	 * Method called via OnListener in {@link CloudBackendFragment}.
 	 */
@@ -144,8 +165,8 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	/**
 	 * Retrieves the list of all posts from the backend and updates the UI. For
 	 * demonstration in this sample, the query that is executed is:
-	 * "SELECT * FROM Guestbook ORDER BY _createdAt DESC LIMIT 50" This query
-	 * will be re-executed when matching entity is updated.
+	 * "SELECT * FROM ERApp ORDER BY _createdAt DESC LIMIT 50" This query will
+	 * be re-executed when matching entity is updated.
 	 */
 	private void listPosts() {
 		// create a response handler that will receive the result or an error
@@ -153,7 +174,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			@Override
 			public void onComplete(List<CloudEntity> results) {
 				mPosts = results;
-				updateGuestbookView();
+				updateExpenseView();
 			}
 
 			@Override
@@ -161,20 +182,27 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				handleEndpointException(exception);
 			}
 		};
-
-		// execute the query with the handler
-		mProcessingFragment.getCloudBackend().listByKind("ERApp",
-				CloudEntity.PROP_CREATED_AT, Order.DESC, 50, Scope.PAST,
-				handler);
+		CloudEntity expense = new CloudEntity("ERApp");
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		if(settings.getString("sort", "date").equals("date")) {
+			mProcessingFragment.getCloudBackend().listByKind("ERApp",
+					CloudEntity.PROP_CREATED_AT, Order.DESC, 50, Scope.PAST,
+					handler);
+		}
+		//need to retrieve price to sort
+		else if(settings.getString("sort", "date").equals("price")) {
+			mProcessingFragment.getCloudBackend().listByKind("ERApp",
+					CloudEntity.PROP_UPDATED_BY, Order.ASC, 50, Scope.PAST,
+					handler);
+		}
 	}
 
 	private void handleEndpointException(IOException e) {
 		Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
 	}
 
-	private void updateGuestbookView() {
+	private void updateExpenseView() {
 		if (!mPosts.isEmpty()) {
-			mPostsView.setVisibility(View.VISIBLE);
 			mPostsView.setAdapter(new ExpensesListAdapter(this,
 					android.R.layout.simple_list_item_1, mPosts));
 		}

@@ -73,11 +73,17 @@ public class HomeActivity extends Activity {
 	}
 
 	public void viewExpense(View view) {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("sort", "date");
 		Intent intent = new Intent(this, ViewExpensesActivity.class);
 		startActivity(intent);
 	}
 
 	public void correctExpense(View view) {
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("sort", "date");
 		Intent intent = new Intent(this, CorrectExpensesActivity.class);
 		startActivity(intent);
 	}

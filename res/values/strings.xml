@@ -37,7 +37,10 @@
     <string name="button_adds">Add</string>
     <string name="hint_date">MM/DD/YYYY</string>
     <string name="button_addfromfile">Add from file</string>
-
+	<string name="hint_name">Name</string>
+	<string name="action_sortDate">Sort by date</string>
+	<string name="action_sortPrice">Sort by price</string>
+	
     <string-array name="entries_category">
         <item>Category</item>
         <item>Entertainment</item>
@@ -65,6 +68,5 @@
         <item>Check</item>
         <item>Transfer</item>
     </string-array>
-        <string name="hint_name">Name</string>
 
 </resources>

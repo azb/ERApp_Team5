@@ -24,9 +24,6 @@ public class ViewIndvExpenseActivity extends Activity {
 		this.getWindow().setSoftInputMode(
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-		Button submit = (Button) findViewById(R.id.button_save);
-		Button camera = (Button) findViewById(R.id.button_camera);
-		Button gallery = (Button) findViewById(R.id.button_gallery);
 		TouchImageView photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		EditText price = (EditText) findViewById(R.id.addExpensePrice);
 		EditText merchant = (EditText) findViewById(R.id.addExpenseMerchant);
@@ -36,11 +33,11 @@ public class ViewIndvExpenseActivity extends Activity {
 		Spinner currency = (Spinner) findViewById(R.id.addExpenseCurrency);
 		Spinner category = (Spinner) findViewById(R.id.addExpenseCategory);
 		Spinner payment = (Spinner) findViewById(R.id.addExpensePayment);
+		Button submit = (Button) findViewById(R.id.button_submit);
 		LinearLayout img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
-
-		submit.setVisibility(View.GONE);
-		camera.setVisibility(View.GONE);
-		gallery.setVisibility(View.GONE);
+		LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
+				
+		layout.setVisibility(View.GONE);
 		price.setFocusable(false);
 		merchant.setFocusable(false);
 		description.setFocusable(false);
@@ -49,6 +46,7 @@ public class ViewIndvExpenseActivity extends Activity {
 		currency.setClickable(false);
 		category.setClickable(false);
 		payment.setClickable(false);
+		submit.setVisibility(View.GONE);
 		
 		Bundle data = getIntent().getExtras();
 		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
