@@ -143,8 +143,19 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			startActivity(getIntent());
 			return true;
 		case R.id.action_export:
+			
+			String str1 = "Merchant,Price,Spent By,Date,\n";
 			for (int i = 0; i < mPosts.size(); i++) {
-				Toast.makeText(this, mPosts.get(i).get("price").toString(), Toast.LENGTH_SHORT).show();
+				str1 += mPosts.get(i).get("price").toString() + ",";
+				str1 += mPosts.get(i).get("merchant").toString() + ",";
+				str1 += mPosts.get(i).get("comment").toString() + ",";
+				str1 += mPosts.get(i).get("currency").toString() + ",";
+				str1 += mPosts.get(i).get("category").toString() + ",";
+				str1 += mPosts.get(i).get("payment").toString() + ",";
+				str1 += mPosts.get(i).get("date").toString() + ",";
+				str1 += mPosts.get(i).get("description").toString() + ",";
+				str1 += "\n";
+				//Toast.makeText(this, mPosts.get(i).get("price").toString(), Toast.LENGTH_SHORT).show();
 			}
 			return true;
 		default:
