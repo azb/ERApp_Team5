@@ -190,11 +190,15 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				File myFile = new File(
 						Environment.getExternalStorageDirectory() + "/ERApp");
 				if (!myFile.exists()) {
-					File erappDirectory = new File("/sdcard/ERApp/");
+					File erappDirectory = new File(Environment
+							.getExternalStorageDirectory().getPath()
+							+ "/ERApp/");
 					erappDirectory.mkdirs();
 				}
 
-				File file = new File(new File("/sdcard/ERApp/"), fileName);
+				File file = new File(new File(Environment
+						.getExternalStorageDirectory().getPath() + "/ERApp/"),
+						fileName);
 				if (file.exists())
 					file.delete();
 				try {
