@@ -1,5 +1,8 @@
 package com.team5.erapp;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -157,6 +160,19 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				str1 += "\n";
 				//Toast.makeText(this, mPosts.get(i).get("price").toString(), Toast.LENGTH_SHORT).show();
 			}
+			//FileBrowser
+			File newCSVFile = new File("test.csv");
+			try {
+				FileWriter out = new FileWriter(newCSVFile);
+				out.write(str1);
+				out.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+			
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
