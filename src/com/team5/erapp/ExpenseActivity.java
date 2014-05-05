@@ -236,7 +236,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 									bitmap.getHeight(), matrix, true);
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			BitmapDrawable drawable = new BitmapDrawable(this.getResources(),
@@ -250,7 +249,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 			} else {
 				drawable = new BitmapDrawable(this.getResources(), bitmap);
 			}
-
 			photoImage.setScaleType(ImageView.ScaleType.MATRIX);
 			photoImage.setImageDrawable(drawable);
 			img.setBackgroundColor(Color.TRANSPARENT);

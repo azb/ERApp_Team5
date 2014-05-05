@@ -2,18 +2,24 @@ package com.team5.erapp;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,7 +49,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 */
 	private ListView mPostsView;
 	private TextView empty;
-	
+
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
 
@@ -69,10 +75,11 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			setTitle("Incomplete Expenses");
 		}
 		// Create the view
-//		LinearLayout display = (LinearLayout) findViewById(R.layout.activity_display_expenses);
-//		empty = new TextView(this);
-//		empty.setText("No expenses to display");
-//		display.addView(empty);
+		// LinearLayout display = (LinearLayout)
+		// findViewById(R.layout.activity_display_expenses);
+		// empty = new TextView(this);
+		// empty.setText("No expenses to display");
+		// display.addView(empty);
 		mPostsView = (ListView) findViewById(R.id.posts_list);
 		mPostsView.setOnItemClickListener(new ListView.OnItemClickListener() {
 
@@ -112,7 +119,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		Bundle data = getIntent().getExtras();
-		if(data.get("display").equals("view")) {
+		if (data.get("display").equals("view")) {
 			getMenuInflater().inflate(R.menu.sort, menu);
 			if (settings.getString("sort", "_createdAt").equals("_createdAt")) {
 				menu.getItem(0).setVisible(false);
@@ -144,7 +151,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			startActivity(getIntent());
 			return true;
 		case R.id.action_export:
-			String str1 = "Merchant,Price,Spent By,Date,\n";
+			String str1 = "Price,Currency,Payment by,Merchant,Category,Date,Description,Comments\n";
 			for (int i = 0; i < mPosts.size(); i++) {
 				str1 += mPosts.get(i).get("price").toString() + ",";
 				str1 += mPosts.get(i).get("currency").toString() + ",";
@@ -155,25 +162,80 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				str1 += mPosts.get(i).get("description").toString() + ",";
 				str1 += mPosts.get(i).get("comment").toString() + ",";
 				str1 += "\n";
-//				Toast.makeText(this, str1, Toast.LENGTH_LONG).show();
 			}
-			//FileBrowser
-			File newCSVFile = new File("test.csv");
-			try {
-				FileWriter out = new FileWriter(newCSVFile);
-				out.write(str1);
-				out.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			
-			
+			final Calendar c = Calendar.getInstance();
+			int yy = c.get(Calendar.YEAR);
+			int mm = c.get(Calendar.MONTH);
+			int dd = c.get(Calendar.DAY_OF_MONTH);
+			int hh = c.get(Calendar.HOUR);
+			int ii = c.get(Calendar.MINUTE);
+			int ss = c.get(Calendar.SECOND);
+			String date = new StringBuilder().append(yy).append("-").append(dd)
+					.append("-").append(mm + 1).append("_").append(hh)
+					.append("-").append(ii).append("-").append(ss).toString();
+			writeFileOnSDCard(str1, this, "ERApp" + "_" + date + ".csv");
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+
+	public static void writeFileOnSDCard(String strWrite, Context context,
+			String fileName) {
+
+		try {
+			if (isSdReadable()) // isSdReadable()e method is define at bottom of
+								// the post
+			{
+				File myFile = new File(
+						Environment.getExternalStorageDirectory() + "/ERApp");
+				if (!myFile.exists()) {
+					File erappDirectory = new File("/sdcard/ERApp/");
+					erappDirectory.mkdirs();
+				}
+
+				File file = new File(new File("/sdcard/ERApp/"), fileName);
+				if (file.exists())
+					file.delete();
+				try {
+					FileOutputStream fOut = new FileOutputStream(file);
+					OutputStreamWriter myOutWriter = new OutputStreamWriter(
+							fOut);
+					myOutWriter.append(strWrite);
+					myOutWriter.close();
+					fOut.close();
+					Toast.makeText(context, "Exported to ERApp folder",
+							Toast.LENGTH_LONG).show();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (Exception e) {
+			// do your stuff here
+		}
+	}
+
+	public static boolean isSdReadable() {
+		boolean mExternalStorageAvailable = false;
+		try {
+			String state = Environment.getExternalStorageState();
+			if (Environment.MEDIA_MOUNTED.equals(state)) {
+				// We can read and write the media
+				mExternalStorageAvailable = true;
+				Log.i("isSdReadable", "External storage card is readable.");
+			} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+				// We can only read the media
+				Log.i("isSdReadable", "External storage card is readable.");
+				mExternalStorageAvailable = true;
+			} else {
+				// Something else is wrong. It may be one of many other
+				// states, but all we need to know is we can neither read nor
+				// write
+				mExternalStorageAvailable = false;
+			}
+		} catch (Exception ex) {
+		}
+		return mExternalStorageAvailable;
 	}
 
 	/**
@@ -244,11 +306,12 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 
 	private void updateExpenseView() {
 		if (!mPosts.isEmpty()) {
-//			empty.setVisibility(View.GONE);
+			// empty.setVisibility(View.GONE);
 			mPostsView.setAdapter(new ExpensesListAdapter(this,
 					android.R.layout.simple_list_item_1, mPosts));
 		} else {
-			Toast.makeText(this, "No expenses to display", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "No expenses to display", Toast.LENGTH_LONG)
+					.show();
 		}
 	}
 }
