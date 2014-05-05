@@ -1,5 +1,7 @@
 package com.team5.erapp;
 
+import java.text.DecimalFormat;
+
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
@@ -10,12 +12,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.google.cloud.backend.core.CloudEntity;
 import com.team5.erapp.R;
 
 public class ViewIndvExpenseActivity extends Activity {
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -25,6 +28,7 @@ public class ViewIndvExpenseActivity extends Activity {
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		TouchImageView photoImage = (TouchImageView) findViewById(R.id.imageView1);
+		TextView priceTitle = (TextView) findViewById(R.id.addExpense_price);
 		EditText price = (EditText) findViewById(R.id.addExpensePrice);
 		EditText merchant = (EditText) findViewById(R.id.addExpenseMerchant);
 		EditText description = (EditText) findViewById(R.id.addExpenseDescription);
@@ -36,7 +40,8 @@ public class ViewIndvExpenseActivity extends Activity {
 		Button submit = (Button) findViewById(R.id.button_submit);
 		LinearLayout img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
 		LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
-				
+
+		priceTitle.setPadding(0, 10, 0, 0);
 		layout.setVisibility(View.GONE);
 		price.setFocusable(false);
 		merchant.setFocusable(false);
@@ -47,14 +52,18 @@ public class ViewIndvExpenseActivity extends Activity {
 		category.setClickable(false);
 		payment.setClickable(false);
 		submit.setVisibility(View.GONE);
-		
+
 		Bundle data = getIntent().getExtras();
 		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
-		
+
 		if (data.get("price").toString().equals("-1")) {
 			price.setText("");
 		} else {
-			price.setText(data.get("price").toString());
+			DecimalFormat format = new DecimalFormat("#");
+			format.setMinimumFractionDigits(2);
+			double amount = Double.parseDouble(data.get("price").toString());
+			price.setText(format.format(amount));
+			// price.setText(data.get("price").toString());
 		}
 		merchant.setText(data.get("merchant").toString());
 		description.setText(data.get("description").toString());
@@ -63,7 +72,7 @@ public class ViewIndvExpenseActivity extends Activity {
 		currency.setSelection(data.getInt("currency"));
 		category.setSelection(data.getInt("category"));
 		payment.setSelection(data.getInt("payment"));
-		
+
 		img.setBackgroundColor(Color.GRAY);
 	}
 }

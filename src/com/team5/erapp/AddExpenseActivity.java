@@ -2,12 +2,15 @@ package com.team5.erapp;
 
 import java.io.IOException;
 import java.io.File;
+import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.cloud.backend.android.mobilebackend.Mobilebackend.BlobEndpoint;
 import com.google.cloud.backend.core.CloudBackendFragment;
 import com.google.cloud.backend.core.CloudBackendFragment.OnListener;
 import com.google.cloud.backend.core.CloudCallbackHandler;
@@ -25,7 +28,9 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -55,7 +60,8 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	private LinearLayout img;
 	private Button submit;
 	private SharedPreferences settings;
-
+	private String imagePath;
+	
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
 
@@ -145,6 +151,7 @@ public class AddExpenseActivity extends Activity implements OnListener {
 				} else {
 					photoUri = data.getData();
 				}
+				imagePath = photoUri.getPath();
 				showPhoto(photoUri.getPath());
 			} else if (resultCode == RESULT_CANCELED) {
 				Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
@@ -160,8 +167,35 @@ public class AddExpenseActivity extends Activity implements OnListener {
 			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
 			String picturePath = cursor.getString(columnIndex);
 			cursor.close();
+			Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
+			try {
+				ExifInterface exif = new ExifInterface(picturePath);
+				int orientation = exif.getAttributeInt(
+						ExifInterface.TAG_ORIENTATION, 1);
+				if (orientation == 6) {
+					Matrix matrix = new Matrix();
+					matrix.postRotate(90);
+					bitmap = Bitmap
+							.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+									bitmap.getHeight(), matrix, true);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			BitmapDrawable drawable = new BitmapDrawable(this.getResources(),
+					bitmap);
+			if (bitmap.getHeight() > 4096 || bitmap.getWidth() > 4096) {
+				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap
+						.getWidth()));
+				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh,
+						true);
+				drawable = new BitmapDrawable(this.getResources(), scaled);
+			} else {
+				drawable = new BitmapDrawable(this.getResources(), bitmap);
+			}
 			photoImage.setScaleType(ImageView.ScaleType.MATRIX);
-			photoImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+			photoImage.setImageDrawable(drawable);
 			img.setBackgroundColor(Color.TRANSPARENT);
 		} else if (resultCode == RESULT_CANCELED) {
 			Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
@@ -190,8 +224,33 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		if (imageFile.exists()) {
 			Bitmap bitmap = BitmapFactory.decodeFile(imageFile
 					.getAbsolutePath());
+			try {
+				ExifInterface exif = new ExifInterface(photoUri);
+				int orientation = exif.getAttributeInt(
+						ExifInterface.TAG_ORIENTATION, 1);
+				if (orientation == 6) {
+					Matrix matrix = new Matrix();
+					matrix.postRotate(90);
+					bitmap = Bitmap
+							.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+									bitmap.getHeight(), matrix, true);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			BitmapDrawable drawable = new BitmapDrawable(this.getResources(),
 					bitmap);
+			if (bitmap.getHeight() > 4096 || bitmap.getWidth() > 4096) {
+				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap
+						.getWidth()));
+				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh,
+						true);
+				drawable = new BitmapDrawable(this.getResources(), scaled);
+			} else {
+				drawable = new BitmapDrawable(this.getResources(), bitmap);
+			}
+
 			photoImage.setScaleType(ImageView.ScaleType.MATRIX);
 			photoImage.setImageDrawable(drawable);
 			img.setBackgroundColor(Color.TRANSPARENT);
@@ -228,15 +287,44 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		// change CloudEntity Object to include user's name/email or company's
 		// name/email
 		CloudEntity expense = new CloudEntity("ERApp");
+
+		// use selected CloudEntity if correcting
 		Bundle data = getIntent().getExtras();
 		if (data.getBoolean("correct") == true) {
 			expense = data.getParcelable("expense");
 		}
+
+		Boolean incomplete = false;
+		if (price.getText().toString().isEmpty()) {
+			incomplete = true;
+			expense.put("price", -1);
+		} else {
+			expense.put("price", Double.parseDouble(price.getText().toString()));
+		}
+		if (merchant.getText().toString().isEmpty()) {
+			incomplete = true;
+			expense.put("merchant", "");
+		} else {
+			expense.put("merchant", merchant.getText().toString());
+		}
+		if (description.getText().toString().isEmpty()) {
+			incomplete = true;
+			expense.put("description", "");
+		} else {
+			expense.put("description", description.getText().toString());
+		}
+		if (date.getText().toString().isEmpty()) {
+			incomplete = true;
+			expense.put("date", "");
+		} else {
+			expense.put("date", date.getText().toString());
+		}
+		if (category.getSelectedItem().toString().equals("Category")) {
+			incomplete = true;
+		}
+		expense.put("incomplete", incomplete);
 		expense.setCreatedBy("Name");
 		expense.setUpdatedBy("Name");
-		expense.put("merchant", merchant.getText().toString());
-		expense.put("description", description.getText().toString());
-		expense.put("date", date.getText().toString());
 		expense.put("comment", comment.getText().toString());
 		expense.put("currency", currency.getSelectedItem().toString());
 		expense.put("currencyPos", currency.getSelectedItemPosition());
@@ -245,35 +333,11 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		expense.put("category", category.getSelectedItem().toString());
 		expense.put("categoryPos", category.getSelectedItemPosition());
 
-		Boolean incomplete = false;
-		if (price.getText().toString().isEmpty()) {
-			incomplete = true;
-			expense.put("price", -1);
-		} else {
-			expense.put("price", Integer.parseInt(price.getText().toString()));
-		}
-		if (merchant.getText().toString().isEmpty()) {
-			incomplete = true;
-			expense.put("merchant", "");
-		}
-		if (description.getText().toString().isEmpty()) {
-			incomplete = true;
-			expense.put("description", "");
-		}
-		if (date.getText().toString().isEmpty()) {
-			incomplete = true;
-			expense.put("date", "");
-		}
-		if (category.getSelectedItem().toString().equals("Category")) {
-			incomplete = true;
-		}
-		expense.put("incomplete", incomplete);
-
 		// save currency
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putInt("index", currency.getSelectedItemPosition());
 		editor.commit();
-
+		
 		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
@@ -325,12 +389,18 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	public void onBroadcastMessageReceived(List<CloudEntity> l) {
 	}
 
+	/**
+	 * Sets existing data into fields if correcting an expense.
+	 */
 	public void setInputs() {
 		Bundle data = getIntent().getExtras();
 		if (data.get("price").toString().equals("-1")) {
 			price.setText("");
 		} else {
-			price.setText(data.get("price").toString());
+			DecimalFormat format = new DecimalFormat("#");
+			format.setMinimumFractionDigits(2);
+			double amount = Double.parseDouble(data.get("price").toString());
+			price.setText(format.format(amount));
 		}
 		merchant.setText(data.get("merchant").toString());
 		description.setText(data.get("description").toString());

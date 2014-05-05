@@ -46,9 +46,10 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 			TextView description = (TextView) view
 					.findViewById(R.id.description);
 			TextView date = (TextView) view.findViewById(R.id.addExpense_price);
-			
-			if(Integer.parseInt(ce.get("price").toString()) >= 0) {
-				price.setText("$" + ce.get("price").toString());
+			double amount = Double.parseDouble(ce.get("price").toString());
+			amount = Math.round(amount);
+			if (amount >= 0) {
+				price.setText("$" + (int) amount);
 			} else {
 				price.setText("empty");
 			}
