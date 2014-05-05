@@ -16,7 +16,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.team5.erapp.R;
@@ -26,11 +28,11 @@ import com.google.cloud.backend.core.CloudCallbackHandler;
 import com.google.cloud.backend.core.CloudEntity;
 import com.google.cloud.backend.core.CloudQuery.Order;
 import com.google.cloud.backend.core.CloudQuery.Scope;
+import com.google.cloud.backend.core.Filter.Op;
 
 /**
  * Shows a list of expenses.
  */
-@SuppressLint("CommitTransaction")
 public class ViewExpensesActivity extends Activity implements OnListener {
 
 	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
@@ -39,12 +41,14 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 * UI components
 	 */
 	private ListView mPostsView;
-	private CloudEntity ce;
-
+	private TextView empty;
+	
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
 
 	public static final String PREFS_NAME = "MyPrefsFile";
+
+	SharedPreferences settings;
 
 	/**
 	 * A list of posts to be displayed
@@ -59,17 +63,30 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_display_expenses);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
+		Bundle data = getIntent().getExtras();
+		if (data.get("display").equals("correct")) {
+			setTitle("Incomplete Expenses");
+		}
 		// Create the view
+//		LinearLayout display = (LinearLayout) findViewById(R.layout.activity_display_expenses);
+//		empty = new TextView(this);
+//		empty.setText("No expenses to display");
+//		display.addView(empty);
 		mPostsView = (ListView) findViewById(R.id.posts_list);
 		mPostsView.setOnItemClickListener(new ListView.OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				ce = (CloudEntity) mPostsView.getItemAtPosition(position);
+				CloudEntity ce = (CloudEntity) mPostsView
+						.getItemAtPosition(position);
+				Bundle data = getIntent().getExtras();
 				Intent i = new Intent(getBaseContext(),
 						ViewIndvExpenseActivity.class);
+				if (data.get("display").equals("correct")) {
+					i = new Intent(getBaseContext(), AddExpenseActivity.class);
+					i.putExtra("correct", true);
+				}
 				i.putExtra("expense", ce);
 				i.putExtra("price", ce.get("price").toString());
 				i.putExtra("merchant", ce.get("merchant").toString());
@@ -85,6 +102,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				startActivity(i);
 			}
 		});
+		settings = getSharedPreferences(PREFS_NAME, 0);
 		mFragmentManager = getFragmentManager();
 
 		initiateFragments();
@@ -92,30 +110,31 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.sort, menu);
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		if(settings.getString("sort", "date").equals("date")) {
-			menu.getItem(0).setVisible(false);
-			menu.getItem(1).setVisible(true);
-		} else if(settings.getString("sort", "date").equals("price")) {
-			menu.getItem(0).setVisible(true);
-			menu.getItem(1).setVisible(false);
+		Bundle data = getIntent().getExtras();
+		if(data.get("display").equals("view")) {
+			getMenuInflater().inflate(R.menu.sort, menu);
+			if (settings.getString("sort", "_createdAt").equals("_createdAt")) {
+				menu.getItem(0).setVisible(false);
+				menu.getItem(1).setVisible(true);
+			} else if (settings.getString("sort", "date").equals("price")) {
+				menu.getItem(0).setVisible(true);
+				menu.getItem(1).setVisible(false);
+			}
 		}
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = settings.edit();
 		switch (item.getItemId()) {
 		case R.id.action_sortDate:
-			editor.putString("sort", "date");
-			editor.commit();			
+			editor.putString("sort", "_createdAt");
+			editor.commit();
 			finish();
 			overridePendingTransition(0, 0);
 			startActivity(getIntent());
-			return true;			
+			return true;
 		case R.id.action_sortPrice:
 			editor.putString("sort", "price");
 			editor.commit();
@@ -158,7 +177,6 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			fragmentTransaction.add(mProcessingFragment,
 					PROCESSING_FRAGMENT_TAG);
 		}
-
 		fragmentTransaction.commit();
 	}
 
@@ -182,17 +200,14 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				handleEndpointException(exception);
 			}
 		};
-		
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		if(settings.getString("sort", "date").equals("date")) {
+		Bundle data = getIntent().getExtras();
+		if (data.get("display").equals("view")) {
 			mProcessingFragment.getCloudBackend().listByKind("ERApp",
-					CloudEntity.PROP_CREATED_AT, Order.DESC, 50, Scope.PAST,
-					handler);
-		}
-		//need to retrieve price to sort
-		else if(settings.getString("sort", "date").equals("price")) {
-			mProcessingFragment.getCloudBackend().listByKind("ERApp",
-					CloudEntity.PROP_UPDATED_BY, Order.ASC, 50, Scope.PAST,
+					settings.getString("sort", "_createdAt"), Order.DESC, 50,
+					Scope.PAST, handler);
+		} else if (data.get("display").equals("correct")) {
+			mProcessingFragment.getCloudBackend().listByProperty("ERApp",
+					"incomplete", Op.EQ, true, Order.DESC, 50, Scope.PAST,
 					handler);
 		}
 	}
@@ -203,8 +218,11 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 
 	private void updateExpenseView() {
 		if (!mPosts.isEmpty()) {
+//			empty.setVisibility(View.GONE);
 			mPostsView.setAdapter(new ExpensesListAdapter(this,
 					android.R.layout.simple_list_item_1, mPosts));
+		} else {
+			Toast.makeText(this, "No expenses to display", Toast.LENGTH_LONG).show();
 		}
 	}
 }

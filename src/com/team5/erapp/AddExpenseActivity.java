@@ -126,6 +126,11 @@ public class AddExpenseActivity extends Activity implements OnListener {
 			}
 		});
 
+		Bundle data = getIntent().getExtras();
+		if (data.getBoolean("correct")) {
+			setTitle("Correct Expense");
+			setInputs();
+		}
 		initiateFragments();
 	}
 
@@ -208,7 +213,7 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	}
 
 	/**
-	 * onClick method.
+	 * onClick method. Sends input in text fields to datastore.
 	 */
 	public void onSendButtonPressed(View view) {
 		if (price.getText().toString().isEmpty()
@@ -219,14 +224,16 @@ public class AddExpenseActivity extends Activity implements OnListener {
 					.show();
 			return;
 		}
+
 		// change CloudEntity Object to include user's name/email or company's
 		// name/email
 		CloudEntity expense = new CloudEntity("ERApp");
-		expense.put("incomplete", false);
-		expense.setOwner("Name");
+		Bundle data = getIntent().getExtras();
+		if (data.getBoolean("correct") == true) {
+			expense = data.getParcelable("expense");
+		}
 		expense.setCreatedBy("Name");
 		expense.setUpdatedBy("Name");
-		expense.put("price", price.getText().toString());
 		expense.put("merchant", merchant.getText().toString());
 		expense.put("description", description.getText().toString());
 		expense.put("date", date.getText().toString());
@@ -236,30 +243,33 @@ public class AddExpenseActivity extends Activity implements OnListener {
 		expense.put("payment", payment.getSelectedItem().toString());
 		expense.put("paymentPos", payment.getSelectedItemPosition());
 		expense.put("category", category.getSelectedItem().toString());
-		expense.put("categoryPos", category.getSelectedItemPosition());		
+		expense.put("categoryPos", category.getSelectedItemPosition());
+
+		Boolean incomplete = false;
 		if (price.getText().toString().isEmpty()) {
-			expense.put("incomplete", true);
-			expense.put("price", "");
+			incomplete = true;
+			expense.put("price", -1);
+		} else {
+			expense.put("price", Integer.parseInt(price.getText().toString()));
 		}
 		if (merchant.getText().toString().isEmpty()) {
-			expense.put("incomplete", true);
+			incomplete = true;
 			expense.put("merchant", "");
 		}
 		if (description.getText().toString().isEmpty()) {
-			expense.put("incomplete", true);
+			incomplete = true;
 			expense.put("description", "");
 		}
 		if (date.getText().toString().isEmpty()) {
-			expense.put("incomplete", true);
+			incomplete = true;
 			expense.put("date", "");
 		}
-		if (comment.getText().toString().isEmpty()) {
-			expense.put("incomplete", true);
-			expense.put("comment", "");
-		}
 		if (category.getSelectedItem().toString().equals("Category")) {
-			expense.put("incomplete", true);
+			incomplete = true;
 		}
+		expense.put("incomplete", incomplete);
+
+		// save currency
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putInt("index", currency.getSelectedItemPosition());
 		editor.commit();
@@ -275,10 +285,24 @@ public class AddExpenseActivity extends Activity implements OnListener {
 			}
 		};
 
-		mProcessingFragment.getCloudBackend().insert(expense, handler);
+		// insert or update cloud entity
+		// if (data.getBoolean("correct") == true && !incomplete) {
+		// mProcessingFragment.getCloudBackend().update(expense, handler);
+		// } else if (data.getBoolean("correct") == true && incomplete) {
+		// Toast.makeText(this, "Please complete all entries",
+		// Toast.LENGTH_LONG).show();
+		// return;
+		// }
+		if (data.getBoolean("correct") == true && !incomplete) {
+			mProcessingFragment.getCloudBackend().update(expense, handler);
+		} else {
+			mProcessingFragment.getCloudBackend().insert(expense, handler);
+		}
 
+		// return to HomeActivity
 		Intent intent = new Intent(this, HomeActivity.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+				| Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 		Toast.makeText(this, "Submitted", Toast.LENGTH_SHORT).show();
 	}
@@ -299,5 +323,21 @@ public class AddExpenseActivity extends Activity implements OnListener {
 	 */
 	@Override
 	public void onBroadcastMessageReceived(List<CloudEntity> l) {
+	}
+
+	public void setInputs() {
+		Bundle data = getIntent().getExtras();
+		if (data.get("price").toString().equals("-1")) {
+			price.setText("");
+		} else {
+			price.setText(data.get("price").toString());
+		}
+		merchant.setText(data.get("merchant").toString());
+		description.setText(data.get("description").toString());
+		date.setText(data.get("date").toString());
+		comment.setText(data.get("comment").toString());
+		currency.setSelection(data.getInt("currency"));
+		category.setSelection(data.getInt("category"));
+		payment.setSelection(data.getInt("payment"));
 	}
 }

@@ -17,7 +17,6 @@ public class HomeActivity extends Activity {
 	public final static String EXTRA_MESSAGE = "com.example.app.MESSAGE";
 	public static final String PREFS_NAME = "MyPrefsFile";
 	SharedPreferences settings;
-	SharedPreferences.Editor editor;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +31,7 @@ public class HomeActivity extends Activity {
 		if(!adminCheck()) {
 			Button addEmployee = (Button) findViewById(R.id.button_addEmployee);
 			addEmployee.setVisibility(View.GONE);
-		}
-		
-		settings = getSharedPreferences(PREFS_NAME, 0);
-		editor = settings.edit();
-		editor.putString("sort", "date");
-		editor.commit();
+		}		
 	}
 
 	@Override
@@ -50,6 +44,8 @@ public class HomeActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_logout:
+			settings = getSharedPreferences(PREFS_NAME, 0);
+			SharedPreferences.Editor editor = settings.edit();;
 			editor.putBoolean("logged", false);
 			editor.commit();
 			Intent intent = new Intent(this, LoginActivity.class);
@@ -62,28 +58,39 @@ public class HomeActivity extends Activity {
 	}
 	
 	public boolean logCheck() {
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		settings = getSharedPreferences(PREFS_NAME, 0);
 		return (settings.getBoolean("logged", false));
 	}
 	
 	public boolean adminCheck() {
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		settings = getSharedPreferences(PREFS_NAME, 0);
 		//return true for now
 		return (settings.getBoolean("admin", true));
 	}
 
 	public void addExpense(View view) {
 		Intent intent = new Intent(this, AddExpenseActivity.class);
+		intent.putExtra("correct", false);
 		startActivity(intent);
 	}
 
 	public void viewExpense(View view) {
+		settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();;
+		editor.putString("sort", "_createdAt");
+		editor.commit();
 		Intent intent = new Intent(this, ViewExpensesActivity.class);
+		intent.putExtra("display", "view");
 		startActivity(intent);
 	}
 
 	public void correctExpense(View view) {
-		Intent intent = new Intent(this, CorrectExpensesActivity.class);
+		settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();;
+		editor.putString("sort", "_createdAt");
+		editor.commit();
+		Intent intent = new Intent(this, ViewExpensesActivity.class);
+		intent.putExtra("display", "correct");
 		startActivity(intent);
 	}
 

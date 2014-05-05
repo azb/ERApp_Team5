@@ -1,8 +1,8 @@
-# view AndroidManifest.xml #generated:111
+# view AndroidManifest.xml #generated:113
 -keep class com.google.android.gcm.GCMBroadcastReceiver { <init>(...); }
 
-# view AndroidManifest.xml #generated:109
-# view AndroidManifest.xml #generated:122
+# view AndroidManifest.xml #generated:111
+# view AndroidManifest.xml #generated:124
 -keep class com.google.cloud.backend.GCMIntentService { <init>(...); }
 
 # view AndroidManifest.xml #generated:43
@@ -32,7 +32,7 @@
 # view AndroidManifest.xml #generated:60
 -keep class com.team5.erapp.ViewExpensesActivity { <init>(...); }
 
-# view AndroidManifest.xml #generated:100
+# view AndroidManifest.xml #generated:101
 -keep class com.team5.erapp.ViewIndvExpenseActivity { <init>(...); }
 
 # onClick res/layout/activity_home.xml #generated:48

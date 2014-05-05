@@ -46,7 +46,8 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 			TextView description = (TextView) view
 					.findViewById(R.id.description);
 			TextView date = (TextView) view.findViewById(R.id.addExpense_price);
-			if(!ce.get("price").toString().equals("")) {
+			
+			if(Integer.parseInt(ce.get("price").toString()) >= 0) {
 				price.setText("$" + ce.get("price").toString());
 			} else {
 				price.setText("empty");
@@ -58,7 +59,6 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 			}			
 			date.setText(ce.getUpdatedAt().toString().substring(4, 10));
 		}
-
 		return view;
 	}
 
@@ -70,8 +70,7 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 	/**
 	 * Gets the author field of the CloudEntity.
 	 * 
-	 * @param post
-	 *            the CloudEntity
+	 * @param post the CloudEntity
 	 * @return author string
 	 */
 	private String getAuthor(CloudEntity post) {

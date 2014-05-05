@@ -89,6 +89,7 @@
                 android:value="com.example.app.MainActivity" />
         </activity>
         <activity
+            android:label="@string/title_activity_addEmployee"
             android:name="AddEmployeeActivity"
             android:parentActivityName="com.team5.erapp.HomeActivity"
             android:windowSoftInputMode="stateHidden" >
@@ -98,6 +99,7 @@
         </activity>
 
         <activity
+            android:label="@string/title_activity_expense"
             android:name="ViewIndvExpenseActivity"
             android:parentActivityName="com.team5.erapp.HomeActivity"
             android:windowSoftInputMode="stateHidden" >

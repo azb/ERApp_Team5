@@ -21,6 +21,7 @@
     <string name="title_activity_signup">Sign Up</string>
     <string name="title_activity_addEmployee">Add Employee</string>
     <string name="title_activity_correctExpenses">Correct Expenses</string>
+    <string name="title_activity_expense">Expense</string>
     <string name="text_email">Email</string>
     <string name="text_password">Password</string>
     <string name="button_login">Log In</string>

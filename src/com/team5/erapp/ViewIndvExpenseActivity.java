@@ -51,7 +51,11 @@ public class ViewIndvExpenseActivity extends Activity {
 		Bundle data = getIntent().getExtras();
 		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
 		
-		price.setText(data.get("price").toString());
+		if (data.get("price").toString().equals("-1")) {
+			price.setText("");
+		} else {
+			price.setText(data.get("price").toString());
+		}
 		merchant.setText(data.get("merchant").toString());
 		description.setText(data.get("description").toString());
 		date.setText(data.get("date").toString());
