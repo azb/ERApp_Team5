@@ -45,7 +45,7 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-public class AddExpenseActivity extends Activity implements OnListener {
+public class ExpenseActivity extends Activity implements OnListener {
 
 	private TouchImageView photoImage = null;
 	private EditText price;

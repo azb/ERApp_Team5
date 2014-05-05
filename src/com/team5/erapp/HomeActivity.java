@@ -69,7 +69,7 @@ public class HomeActivity extends Activity {
 	}
 
 	public void addExpense(View view) {
-		Intent intent = new Intent(this, AddExpenseActivity.class);
+		Intent intent = new Intent(this, ExpenseActivity.class);
 		intent.putExtra("correct", false);
 		startActivity(intent);
 	}

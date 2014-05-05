@@ -84,7 +84,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				Intent i = new Intent(getBaseContext(),
 						ViewIndvExpenseActivity.class);
 				if (data.get("display").equals("correct")) {
-					i = new Intent(getBaseContext(), AddExpenseActivity.class);
+					i = new Intent(getBaseContext(), ExpenseActivity.class);
 					i.putExtra("correct", true);
 				}
 				i.putExtra("expense", ce);
@@ -142,6 +142,11 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			overridePendingTransition(0, 0);
 			startActivity(getIntent());
 			return true;
+		case R.id.action_export:
+			for (int i = 0; i < mPosts.size(); i++) {
+				Toast.makeText(this, mPosts.get(i).get("price").toString(), Toast.LENGTH_SHORT).show();
+			}
+			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -152,7 +157,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 */
 	@Override
 	public void onCreateFinished() {
-		listPosts();
+		listExpenses();
 	}
 
 	/**
@@ -181,12 +186,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	}
 
 	/**
-	 * Retrieves the list of all posts from the backend and updates the UI. For
-	 * demonstration in this sample, the query that is executed is:
-	 * "SELECT * FROM ERApp ORDER BY _createdAt DESC LIMIT 50" This query will
-	 * be re-executed when matching entity is updated.
+	 * Retrieves the list of all expenses from the backend and updates the UI.
 	 */
-	private void listPosts() {
+	private void listExpenses() {
 		// create a response handler that will receive the result or an error
 		CloudCallbackHandler<List<CloudEntity>> handler = new CloudCallbackHandler<List<CloudEntity>>() {
 			@Override

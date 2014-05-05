@@ -11,11 +11,11 @@
 # view AndroidManifest.xml #generated:91
 -keep class com.team5.erapp.AddEmployeeActivity { <init>(...); }
 
-# view AndroidManifest.xml #generated:51
--keep class com.team5.erapp.AddExpenseActivity { <init>(...); }
-
 # view AndroidManifest.xml #generated:83
 -keep class com.team5.erapp.CorrectExpensesActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:51
+-keep class com.team5.erapp.ExpenseActivity { <init>(...); }
 
 # view AndroidManifest.xml #generated:34
 -keep class com.team5.erapp.HomeActivity { <init>(...); }

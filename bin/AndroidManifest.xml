@@ -49,7 +49,7 @@
                 android:value="com.google.cloud.backend.sample.guestbook.GuestbookActivity" />
         </activity>
         <activity
-            android:name="com.team5.erapp.AddExpenseActivity"
+            android:name="com.team5.erapp.ExpenseActivity"
             android:label="@string/title_activity_display_message"
             android:parentActivityName="com.team5.erapp.HomeActivity"
             android:windowSoftInputMode="stateHidden" >

@@ -41,6 +41,7 @@
 	<string name="hint_name">Name</string>
 	<string name="action_sortDate">Sort by date</string>
 	<string name="action_sortPrice">Sort by price</string>
+	<string name="action_export">Export to CSV</string>
 	
     <string-array name="entries_category">
         <item>Category</item>
