@@ -148,7 +148,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 				imagePath = photoUri.getPath();
 				showPhoto(photoUri.getPath());
 			} else if (resultCode == RESULT_CANCELED) {
-				Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
 			}
 		}
 		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK
@@ -191,8 +190,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 			photoImage.setScaleType(ImageView.ScaleType.MATRIX);
 			photoImage.setImageDrawable(drawable);
 			img.setBackgroundColor(Color.TRANSPARENT);
-		} else if (resultCode == RESULT_CANCELED) {
-			Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
 		}
 	}
 
@@ -279,11 +276,12 @@ public class ExpenseActivity extends Activity implements OnListener {
 		// change CloudEntity Object to include user's name/email or company's
 		// name/email
 		CloudEntity expense = new CloudEntity("ERApp");
-
+		expense.put("correctable", true);
 		// use selected CloudEntity if correcting
 		Bundle data = getIntent().getExtras();
 		if (data.get("display").equals("correct")) {
 			expense = data.getParcelable("expense");
+			expense.put("correctable", false);
 		}
 
 		Boolean incomplete = false;

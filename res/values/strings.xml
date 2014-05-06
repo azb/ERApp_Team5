@@ -36,12 +36,15 @@
     <string name="text_date">Date</string>
     <string name="check_corporate">Corporate</string>
     <string name="button_adds">Add</string>
-    <string name="hint_date">MM/DD/YYYY</string>
+    <string name="hint_date">M/D/YYYY</string>
     <string name="button_addfromfile">Add from file</string>
 	<string name="hint_name">Name</string>
 	<string name="action_sortDate">Sort by date</string>
 	<string name="action_sortPrice">Sort by price</string>
 	<string name="action_export">Export to CSV</string>
+	<string name="title_export">Select range</string>
+	<string name="title_month">Select month</string>
+	<string name="title_year">Select year</string>
 	
     <string-array name="entries_category">
         <item>Category</item>

@@ -4,15 +4,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -51,9 +56,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
-
+	
 	public static final String PREFS_NAME = "MyPrefsFile";
-
+	
 	SharedPreferences settings;
 
 	/**
@@ -166,43 +171,130 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			startActivity(getIntent());
 			return true;
 		case R.id.action_export:
-			String str1 = "Price,Currency,Payment by,Merchant,Category,Date,Description,Comments\n";
-			for (int i = 0; i < mPosts.size(); i++) {
-				str1 += mPosts.get(i).get("price").toString()
-						.replaceAll(",", ".")
-						+ ",";
-				str1 += mPosts.get(i).get("currency").toString() + ",";
-				str1 += mPosts.get(i).get("payment").toString() + ",";
-				str1 += mPosts.get(i).get("merchant").toString()
-						.replaceAll(",", ";")
-						+ ",";
-				str1 += mPosts.get(i).get("category").toString() + ",";
-				str1 += mPosts.get(i).get("date").toString() + ",";
-				str1 += mPosts.get(i).get("description").toString()
-						.replaceAll(",", ";")
-						+ ",";
-				str1 += mPosts.get(i).get("comment").toString()
-						.replaceAll(",", ";")
-						+ ",";
-				str1 += "\n";
-			}
-			final Calendar c = Calendar.getInstance();
-			int yy = c.get(Calendar.YEAR);
-			int mm = c.get(Calendar.MONTH);
-			int dd = c.get(Calendar.DAY_OF_MONTH);
-			int hh = c.get(Calendar.HOUR);
-			int ii = c.get(Calendar.MINUTE);
-			int ss = c.get(Calendar.SECOND);
-			String curTime = String.format(Locale.getDefault(),
-					"%02d-%02d-%02d", hh, ii, ss);
-			String date = new StringBuilder().append(yy).append("-").append(dd)
-					.append("-").append(mm + 1).append("_").append(curTime)
-					.toString();
-			writeFileOnSDCard(str1, this, "ERApp" + "_" + date + ".csv");
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			final CharSequence[] items = { "All", "Month", "Year" };
+			builder.setTitle(R.string.title_export).setItems(items,
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int which) {
+							// The 'which' argument contains the index position
+							// of the selected item
+							String type = items[which].toString();
+							if (type.equals("Month")) {
+								final CharSequence[] itemsMonth = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+								AlertDialog.Builder builder2 = new AlertDialog.Builder(ViewExpensesActivity.this);
+								builder2.setTitle(R.string.title_month).setItems(itemsMonth, new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialong, int which) {
+										String range = itemsMonth[which].toString();
+										createCSV(range, "month");
+									}
+								});
+								builder2.create().show();
+							}
+							else if (type.equals("Year")) {
+								final CharSequence[] itemsYear = { "2014", "2015", "2016" };
+								AlertDialog.Builder builder3 = new AlertDialog.Builder(ViewExpensesActivity.this);
+								builder3.setTitle(R.string.title_year).setItems(itemsYear, new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialong, int which) {
+										String range = itemsYear[which].toString();
+										createCSV(range, "year");
+									}
+								});
+								builder3.create().show();
+							}
+							else {
+								createCSV(type, "all");
+							}
+						}
+					});
+			builder.create().show();			
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
+	}
+	
+	/**
+	 * Creates a CSV file with expense data.
+	 * @param range Range such as January, February, 2014, etc.
+	 * @param type Type of category: all, month, or year
+	 */
+	public void createCSV(String range, String type) {
+		String str1 = "Price,Currency,Payment by,Merchant,Category,Date,Description,Comments\n";
+		str1 = setRange(str1, range, type);
+		final Calendar c = Calendar.getInstance();
+		int yy = c.get(Calendar.YEAR);
+		int mm = c.get(Calendar.MONTH);
+		int dd = c.get(Calendar.DAY_OF_MONTH);
+		int hh = c.get(Calendar.HOUR);
+		int ii = c.get(Calendar.MINUTE);
+		int ss = c.get(Calendar.SECOND);
+		String curTime = String.format(Locale.getDefault(),
+				"%02d-%02d-%02d", hh, ii, ss);
+		String date = new StringBuilder().append(yy).append("-").append(dd)
+				.append("-").append(mm + 1).append("_").append(curTime)
+				.toString();
+		writeFileOnSDCard(str1, getBaseContext(), "ERApp" + "_" + date + ".csv");
+	}
+	
+	/**
+	 * Sets the category range.
+	 * @param str1 CSV string
+	 * @param range Range such as January, February, 2014, etc.
+	 * @param type Type of category: all, month, or year
+	 * @return A String containing expense data from chosen range.
+	 */
+	public String setRange(String str1, String range, String type) {
+		for (int i = 0; i < mPosts.size(); i++) {
+			String date = mPosts.get(i).get("date").toString();
+			if (type.equals("all")) {
+				str1 = appendEx(str1, i);
+			} else if (type.equals("year")) {
+				if (date.substring(date.length() - 4, date.length()).equals(range)) {
+					str1 = appendEx(str1, i);
+				}
+			} else if (type.equals("month")) {
+				String month = "";
+				try {
+					Date d = new SimpleDateFormat("MMM", Locale.ENGLISH).parse(range);
+					Calendar cal = Calendar.getInstance();
+				    cal.setTime(d);
+				    int m = cal.get(Calendar.MONTH) + 1;
+				    month = Integer.toString(m);
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}				
+				if (date.substring(0, date.indexOf("/")).equals(month)) {	
+					str1 = appendEx(str1, i);
+				}
+			}
+		}
+		return str1;
+	}
+	
+	/**
+	 * Appends the expense data from chosen range to a String str1.
+	 * @param str1 The String to append to.
+	 * @param i Index of CloudEntity object satisfying the range.
+	 * @return A String containing expense data from chosen range.
+	 */
+	public String appendEx(String str1, int i) {
+		str1 += mPosts.get(i).get("price").toString().replaceAll(",", ".")
+				+ ",";
+		str1 += mPosts.get(i).get("currency").toString() + ",";
+		str1 += mPosts.get(i).get("payment").toString() + ",";
+		str1 += mPosts.get(i).get("merchant").toString()
+				.replaceAll(",", ";")
+				+ ",";
+		str1 += mPosts.get(i).get("category").toString() + ",";
+		str1 += mPosts.get(i).get("date").toString() + ",";
+		str1 += mPosts.get(i).get("description").toString()
+				.replaceAll(",", ";")
+				+ ",";
+		str1 += mPosts.get(i).get("comment").toString()
+				.replaceAll(",", ";")
+				+ ",";
+		str1 += "\n";
+		return str1;
 	}
 
 	public static void writeFileOnSDCard(String strWrite, Context context,
@@ -222,8 +314,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				File file = new File(new File(Environment
 						.getExternalStorageDirectory().getPath() + "/ERApp/"),
 						fileName);
-				if (file.exists())
+				if (file.exists()) {
 					file.delete();
+				}
 				try {
 					FileOutputStream fOut = new FileOutputStream(file);
 					OutputStreamWriter myOutWriter = new OutputStreamWriter(
@@ -240,7 +333,6 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				}
 			}
 		} catch (Exception e) {
-			// do your stuff here
 		}
 	}
 
