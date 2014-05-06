@@ -1,14 +1,13 @@
 package com.team5.erapp;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.app.FragmentManager;
@@ -74,6 +73,10 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		if (data.get("display").equals("correct")) {
 			setTitle("Incomplete Expenses");
 		}
+
+		settings = getSharedPreferences(PREFS_NAME, 0);
+		mFragmentManager = getFragmentManager();
+
 		// Create the view
 		// LinearLayout display = (LinearLayout)
 		// findViewById(R.layout.activity_display_expenses);
@@ -89,11 +92,11 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				CloudEntity ce = (CloudEntity) mPostsView
 						.getItemAtPosition(position);
 				Bundle data = getIntent().getExtras();
-				Intent i = new Intent(getBaseContext(),
-						ViewIndvExpenseActivity.class);
-				if (data.get("display").equals("correct")) {
-					i = new Intent(getBaseContext(), ExpenseActivity.class);
-					i.putExtra("correct", true);
+				Intent i = new Intent(getBaseContext(), ExpenseActivity.class);
+				if (data.get("display").equals("view")) {
+					i.putExtra("display", "view");
+				} else if (data.get("display").equals("correct")) {
+					i.putExtra("display", "correct");
 				}
 				i.putExtra("expense", ce);
 				i.putExtra("price", ce.get("price").toString());
@@ -110,10 +113,22 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				startActivity(i);
 			}
 		});
-		settings = getSharedPreferences(PREFS_NAME, 0);
-		mFragmentManager = getFragmentManager();
-
 		initiateFragments();
+	}
+
+	/**
+	 * Method called via OnListener in {@link CloudBackendFragment}.
+	 */
+	@Override
+	public void onCreateFinished() {
+		listExpenses();
+	}
+
+	/**
+	 * Method called via OnListener in {@link CloudBackendFragment}.
+	 */
+	@Override
+	public void onBroadcastMessageReceived(List<CloudEntity> l) {
 	}
 
 	@Override
@@ -153,14 +168,22 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		case R.id.action_export:
 			String str1 = "Price,Currency,Payment by,Merchant,Category,Date,Description,Comments\n";
 			for (int i = 0; i < mPosts.size(); i++) {
-				str1 += mPosts.get(i).get("price").toString() + ",";
+				str1 += mPosts.get(i).get("price").toString()
+						.replaceAll(",", ".")
+						+ ",";
 				str1 += mPosts.get(i).get("currency").toString() + ",";
 				str1 += mPosts.get(i).get("payment").toString() + ",";
-				str1 += mPosts.get(i).get("merchant").toString() + ",";
+				str1 += mPosts.get(i).get("merchant").toString()
+						.replaceAll(",", ";")
+						+ ",";
 				str1 += mPosts.get(i).get("category").toString() + ",";
 				str1 += mPosts.get(i).get("date").toString() + ",";
-				str1 += mPosts.get(i).get("description").toString() + ",";
-				str1 += mPosts.get(i).get("comment").toString() + ",";
+				str1 += mPosts.get(i).get("description").toString()
+						.replaceAll(",", ";")
+						+ ",";
+				str1 += mPosts.get(i).get("comment").toString()
+						.replaceAll(",", ";")
+						+ ",";
 				str1 += "\n";
 			}
 			final Calendar c = Calendar.getInstance();
@@ -170,9 +193,11 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			int hh = c.get(Calendar.HOUR);
 			int ii = c.get(Calendar.MINUTE);
 			int ss = c.get(Calendar.SECOND);
+			String curTime = String.format(Locale.getDefault(),
+					"%02d-%02d-%02d", hh, ii, ss);
 			String date = new StringBuilder().append(yy).append("-").append(dd)
-					.append("-").append(mm + 1).append("_").append(hh)
-					.append("-").append(ii).append("-").append(ss).toString();
+					.append("-").append(mm + 1).append("_").append(curTime)
+					.toString();
 			writeFileOnSDCard(str1, this, "ERApp" + "_" + date + ".csv");
 			return true;
 		default:
@@ -184,9 +209,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			String fileName) {
 
 		try {
-			if (isSdReadable()) // isSdReadable()e method is define at bottom of
-								// the post
-			{
+			if (isSdReadable()) {
 				File myFile = new File(
 						Environment.getExternalStorageDirectory() + "/ERApp");
 				if (!myFile.exists()) {
@@ -208,7 +231,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					myOutWriter.append(strWrite);
 					myOutWriter.close();
 					fOut.close();
-					Toast.makeText(context, "Exported to ERApp folder",
+					String path = myFile.getPath().substring(
+							myFile.getPath().indexOf("/sd"));
+					Toast.makeText(context, "Exported to folder " + path,
 							Toast.LENGTH_LONG).show();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -240,21 +265,6 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		} catch (Exception ex) {
 		}
 		return mExternalStorageAvailable;
-	}
-
-	/**
-	 * Method called via OnListener in {@link CloudBackendFragment}.
-	 */
-	@Override
-	public void onCreateFinished() {
-		listExpenses();
-	}
-
-	/**
-	 * Method called via OnListener in {@link CloudBackendFragment}.
-	 */
-	@Override
-	public void onBroadcastMessageReceived(List<CloudEntity> l) {
 	}
 
 	private void initiateFragments() {

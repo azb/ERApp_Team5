@@ -43,6 +43,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class ExpenseActivity extends Activity implements OnListener {
@@ -75,12 +76,11 @@ public class ExpenseActivity extends Activity implements OnListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_add_expenses);
+		setContentView(R.layout.activity_expenses);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		this.getWindow().setSoftInputMode(
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-		submit = (Button) findViewById(R.id.button_submit);
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
 		merchant = (EditText) findViewById(R.id.addExpenseMerchant);
@@ -91,6 +91,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
+		submit = (Button) findViewById(R.id.button_submit);
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 
@@ -104,13 +105,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 
 		date.setText(new StringBuilder().append(mm + 1).append("/").append(dd)
 				.append("/").append(yy));
-
-		submit.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				onSendButtonPressed(v);
-			}
-		});
 
 		Button callCameraButton = (Button) findViewById(R.id.button_camera);
 		callCameraButton.setOnClickListener(new View.OnClickListener() {
@@ -133,7 +127,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		});
 
 		Bundle data = getIntent().getExtras();
-		if (data.getBoolean("correct")) {
+		if (data.get("display").equals("view") || data.get("display").equals("correct")) {
 			setTitle("Correct Expense");
 			setInputs();
 		}
@@ -288,7 +282,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 
 		// use selected CloudEntity if correcting
 		Bundle data = getIntent().getExtras();
-		if (data.getBoolean("correct") == true) {
+		if (data.get("display").equals("correct")) {
 			expense = data.getParcelable("expense");
 		}
 
@@ -347,14 +341,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 			}
 		};
 
-		// insert or update cloud entity
-		// if (data.getBoolean("correct") == true && !incomplete) {
-		// mProcessingFragment.getCloudBackend().update(expense, handler);
-		// } else if (data.getBoolean("correct") == true && incomplete) {
-		// Toast.makeText(this, "Please complete all entries",
-		// Toast.LENGTH_LONG).show();
-		// return;
-		// }
 		if (data.getBoolean("correct") == true && !incomplete) {
 			mProcessingFragment.getCloudBackend().update(expense, handler);
 		} else {
@@ -407,5 +393,25 @@ public class ExpenseActivity extends Activity implements OnListener {
 		currency.setSelection(data.getInt("currency"));
 		category.setSelection(data.getInt("category"));
 		payment.setSelection(data.getInt("payment"));
+		
+		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
+		
+		if (data.get("display").equals("view")) {
+			setTitle("Expense");
+			TextView priceTitle = (TextView) findViewById(R.id.addExpense_price);
+			LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
+			
+			priceTitle.setPadding(0, 10, 0, 0);
+			layout.setVisibility(View.GONE);
+			price.setFocusable(false);
+			merchant.setFocusable(false);
+			description.setFocusable(false);
+			date.setFocusable(false);
+			comment.setFocusable(false);
+			currency.setClickable(false);
+			category.setClickable(false);
+			payment.setClickable(false);
+			submit.setVisibility(View.GONE);
+		}
 	}
 }

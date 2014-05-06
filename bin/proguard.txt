@@ -26,7 +26,7 @@
 # view AndroidManifest.xml #generated:74
 -keep class com.team5.erapp.SignupActivity { <init>(...); }
 
-# view res/layout/activity_add_expenses.xml #generated:20
+# view res/layout/activity_expenses.xml #generated:20
 -keep class com.team5.erapp.TouchImageView { <init>(...); }
 
 # view AndroidManifest.xml #generated:60

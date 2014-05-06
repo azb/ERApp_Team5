@@ -52,6 +52,7 @@
         <item>Lodging</item>
         <item>Office</item>
         <item>Phone</item>
+        <item>Shopping</item>
         <item>Transportation</item>
     </string-array>
     <string-array name="entries_currency">
