@@ -16,7 +16,7 @@ import android.widget.TextView;
 public class LoginActivity extends Activity {
 
 	private Button btnLogin;
-	private Button Btnregister;
+	private Button btnregister;
 	private EditText inputEmail;
 	private EditText inputPassword;
 
@@ -29,7 +29,7 @@ public class LoginActivity extends Activity {
 		setContentView(R.layout.activity_login);
 		inputEmail = (EditText) findViewById(R.id.emailLogin);
 		inputPassword = (EditText) findViewById(R.id.addExpensePrice);
-		Btnregister = (Button) findViewById(R.id.buttonSignup);
+		btnregister = (Button) findViewById(R.id.buttonSignup);
 		btnLogin = (Button) findViewById(R.id.buttonLogin);
 	}
 

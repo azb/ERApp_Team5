@@ -41,6 +41,7 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 				R.layout.row_expense, parent, false);
 
 		CloudEntity ce = getItem(position);
+		@SuppressWarnings("unchecked")
 		List<Object> a = (List<Object>) ce.get("ex");
 		if (ce != null) {
 			TextView price = (TextView) view.findViewById(R.id.price);

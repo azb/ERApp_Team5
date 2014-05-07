@@ -54,14 +54,13 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 * UI components
 	 */
 	private ListView mExpensesView;
-	private ArrayList<CloudEntity> a;
 	private Bundle data;
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
 	private TextView emptyView;
 	public static final String PREFS_NAME = "MyPrefsFile";
 
-	SharedPreferences settings;
+	private SharedPreferences settings;
 
 	/**
 	 * A list of expenses to be displayed
@@ -233,6 +232,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 						} else if (data.get("display").equals("correct")) {
 							i.putExtra("display", "correct");
 						}
+						@SuppressWarnings("unchecked")
 						List<Object> ab = (ArrayList<Object>) ce.get("ex");
 						i.putExtra("expense", ce);
 						i.putExtra("price", ab.get(0).toString());
@@ -298,7 +298,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 * @param type
 	 *            Type of category: all, month, or year
 	 */
-	public void createCSV(String range, String type) {
+	private void createCSV(String range, String type) {
 		String str1 = "Price,Currency,Payment,Merchant,Category,Date,Description,Comments\n";
 		str1 = setRange(str1, range, type);
 		final Calendar c = Calendar.getInstance();
@@ -327,16 +327,18 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 *            Type of category: all, month, or year
 	 * @return A String containing expense data from chosen range.
 	 */
-	public String setRange(String str1, String range, String type) {
+	@SuppressWarnings("unchecked")
+	private String setRange(String str1, String range, String type) {
+		List<Object> a = new ArrayList<Object>();
 		for (int i = 0; i < mExpenses.size(); i++) {
-			List<Object> a = (ArrayList<Object>) mExpenses.get(i).get("ex");
+			a = (ArrayList<Object>) mExpenses.get(i).get("ex");
 			String date = a.get(3).toString();
 			if (type.equals("all")) {
-				str1 = appendEx(str1, i);
+				str1 = appendEx(str1, a);
 			} else if (type.equals("year")) {
 				if (date.substring(date.length() - 4, date.length()).equals(
 						range)) {
-					str1 = appendEx(str1, i);
+					str1 = appendEx(str1, a);
 				}
 			} else if (type.equals("month")) {
 				String month = "";
@@ -352,7 +354,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				}
 				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == Integer
 						.parseInt(month)) {
-					str1 = appendEx(str1, i);
+					str1 = appendEx(str1, a);
 				}
 			}
 		}
@@ -368,8 +370,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 *            Index of CloudEntity object satisfying the range.
 	 * @return A String containing expense data from chosen range.
 	 */
-	public String appendEx(String str1, int i) {
-		List<Object> a = (ArrayList<Object>) mExpenses.get(i).get("ex");
+	private String appendEx(String str1, List<Object> a) {
 		str1 += a.get(0).toString().replaceAll(",", ".") + ",";
 		str1 += a.get(5).toString() + ",";
 		str1 += a.get(7).toString() + ",";
@@ -382,7 +383,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		return str1;
 	}
 
-	public static void writeFileOnSDCard(String strWrite, Context context,
+	private static void writeFileOnSDCard(String strWrite, Context context,
 			String fileName) {
 
 		try {
@@ -421,7 +422,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		}
 	}
 
-	public static boolean isSdReadable() {
+	private static boolean isSdReadable() {
 		boolean mExternalStorageAvailable = false;
 		try {
 			String state = Environment.getExternalStorageState();

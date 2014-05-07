@@ -1,8 +1,5 @@
 package com.team5.erapp;
 
-import java.util.ArrayList;
-
-import com.google.cloud.backend.core.CloudEntity;
 import com.team5.erapp.R;
 
 import android.app.Activity;
@@ -17,13 +14,13 @@ import android.widget.Button;
 
 public class HomeActivity extends Activity {
 
-	public static ArrayList<CloudEntity> a;
 	public final static String EXTRA_MESSAGE = "com.example.app.MESSAGE";
 	public static final String PREFS_NAME = "MyPrefsFile";
-	SharedPreferences settings;
+	private SharedPreferences settings;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		settings = getSharedPreferences(PREFS_NAME, 0);
 		if (!logCheck()) {
 			Intent intent = new Intent(this, LoginActivity.class);
 			startActivity(intent);
@@ -48,7 +45,6 @@ public class HomeActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_logout:
-			settings = getSharedPreferences(PREFS_NAME, 0);
 			SharedPreferences.Editor editor = settings.edit();;
 			editor.putBoolean("logged", false);
 			editor.commit();
@@ -61,13 +57,11 @@ public class HomeActivity extends Activity {
 		}
 	}
 	
-	public boolean logCheck() {
-		settings = getSharedPreferences(PREFS_NAME, 0);
+	private boolean logCheck() {
 		return (settings.getBoolean("logged", false));
 	}
 	
-	public boolean adminCheck() {
-		settings = getSharedPreferences(PREFS_NAME, 0);
+	private boolean adminCheck() {
 		//return true for now
 		return (settings.getBoolean("admin", true));
 	}
@@ -79,7 +73,6 @@ public class HomeActivity extends Activity {
 	}
 
 	public void viewExpense(View view) {
-		settings = getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = settings.edit();;
 		editor.putString("sort", settings.getString("sort", "_createdAt"));
 		editor.commit();
@@ -89,7 +82,6 @@ public class HomeActivity extends Activity {
 	}
 
 	public void correctExpense(View view) {
-		settings = getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putString("sort", "_createdAt");
 		editor.commit();

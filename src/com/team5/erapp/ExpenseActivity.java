@@ -225,6 +225,48 @@ public class ExpenseActivity extends Activity implements OnListener {
 		}
 	}
 
+	/**
+	 * Sets existing data into fields if correcting or viewing an expense.
+	 */
+	private void setInputs() {
+		Bundle data = getIntent().getExtras();
+		if (data.get("price").toString().equals("-1.0")) {
+			price.setText("");
+		} else {
+			DecimalFormat format = new DecimalFormat("#");
+			format.setMinimumFractionDigits(2);
+			double amount = Double.parseDouble(data.get("price").toString());
+			price.setText(format.format(amount));
+		}
+		merchant.setText(data.get("merchant").toString());
+		description.setText(data.get("description").toString());
+		date.setText(data.get("date").toString());
+		comment.setText(data.get("comment").toString());
+		currency.setSelection((int) Double.parseDouble(data.get("currency").toString()));
+		category.setSelection((int) Double.parseDouble(data.get("category").toString()));
+		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
+	
+		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
+	
+		if (data.get("display").equals("view")) {
+			setTitle("Expense");
+			TextView priceTitle = (TextView) findViewById(R.id.addExpense_price);
+			LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
+	
+			priceTitle.setPadding(0, 10, 0, 0);
+			layout.setVisibility(View.GONE);
+			price.setFocusable(false);
+			merchant.setFocusable(false);
+			description.setFocusable(false);
+			date.setFocusable(false);
+			comment.setFocusable(false);
+			currency.setClickable(false);
+			category.setClickable(false);
+			payment.setClickable(false);
+			submit.setVisibility(View.GONE);
+		}
+	}
+
 	private File getOutputPhotoFile() {
 		File directory = new File(
 				Environment
@@ -320,7 +362,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 		if (price.getText().toString().isEmpty()) {
 			incomplete = true;
 			list.add(-1);
+			expense.put("price", -1);
 		} else {
+			expense.put("price", Double.parseDouble(price.getText().toString()));
 			list.add(Double.parseDouble(price.getText().toString()));
 		}
 		if (merchant.getText().toString().isEmpty()) {
@@ -356,7 +400,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		list.add(category.getSelectedItem().toString());
 		list.add(category.getSelectedItemPosition());
 		expense.put("incomplete", incomplete);
-		expense.put("price", Double.parseDouble(price.getText().toString()));
 		expense.setCreatedBy("Name");
 		expense.setUpdatedBy("Name");
 		// save currency
@@ -413,47 +456,5 @@ public class ExpenseActivity extends Activity implements OnListener {
 	 */
 	@Override
 	public void onBroadcastMessageReceived(List<CloudEntity> l) {
-	}
-
-	/**
-	 * Sets existing data into fields if correcting an expense.
-	 */
-	public void setInputs() {
-		Bundle data = getIntent().getExtras();
-		if (data.get("price").toString().equals("-1")) {
-			price.setText("");
-		} else {
-			DecimalFormat format = new DecimalFormat("#");
-			format.setMinimumFractionDigits(2);
-			double amount = Double.parseDouble(data.get("price").toString());
-			price.setText(format.format(amount));
-		}
-		merchant.setText(data.get("merchant").toString());
-		description.setText(data.get("description").toString());
-		date.setText(data.get("date").toString());
-		comment.setText(data.get("comment").toString());
-		currency.setSelection((int) Double.parseDouble(data.get("currency").toString()));
-		category.setSelection((int) Double.parseDouble(data.get("category").toString()));
-		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
- 
-		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
-
-		if (data.get("display").equals("view")) {
-			setTitle("Expense");
-			TextView priceTitle = (TextView) findViewById(R.id.addExpense_price);
-			LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
-
-			priceTitle.setPadding(0, 10, 0, 0);
-			layout.setVisibility(View.GONE);
-			price.setFocusable(false);
-			merchant.setFocusable(false);
-			description.setFocusable(false);
-			date.setFocusable(false);
-			comment.setFocusable(false);
-			currency.setClickable(false);
-			category.setClickable(false);
-			payment.setClickable(false);
-			submit.setVisibility(View.GONE);
-		}
 	}
 }
