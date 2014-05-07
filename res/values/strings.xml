@@ -45,6 +45,7 @@
 	<string name="title_export">Select range</string>
 	<string name="title_month">Select month</string>
 	<string name="title_year">Select year</string>
+	<string name="no_expenses">No expenses</string>
 	
     <string-array name="entries_category">
         <item>Category</item>

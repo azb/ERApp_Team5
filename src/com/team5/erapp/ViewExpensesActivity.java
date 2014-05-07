@@ -31,6 +31,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.team5.erapp.R;
@@ -57,7 +58,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	private Bundle data;
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
-
+	private TextView emptyView;
 	public static final String PREFS_NAME = "MyPrefsFile";
 
 	SharedPreferences settings;
@@ -78,7 +79,8 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		settings = getSharedPreferences(PREFS_NAME, 0);
 		setContentView(R.layout.activity_display_expenses);
-		initializePosts();
+		initializeView();
+		emptyView = (TextView) findViewById(R.id.no_expenses);
 		data = getIntent().getExtras();
 		if (data.get("display").equals("correct")) {
 			setTitle("Incomplete Expenses");
@@ -90,6 +92,20 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			}
 			updateExpenseView();
 		} else {
+			emptyView.setText("Loading...");
+			emptyView.setVisibility(View.VISIBLE);
+			Thread loadThread = new Thread() {
+
+				@Override
+				public void run() {
+					try {
+						super.run();
+					} catch (Exception e) {
+
+					}
+				}
+			};
+			loadThread.start();
 			mFragmentManager = getFragmentManager();
 			initiateFragments();
 		}
@@ -102,7 +118,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	public void onCreateFinished() {
 		listExpenses();
 	}
-	
+
 	@Override
 	public void onBackPressed() {
 		if (settings.getBoolean("update", false)
@@ -138,21 +154,22 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			editor.putString("sort", "_createdAt");
 			editor.putBoolean("update", true);
 			editor.commit();
-			finish();
 			startActivity(getIntent());
-			overridePendingTransition(0,0);
+			overridePendingTransition(0, 0);
+			finish();
 			return true;
 		case R.id.action_sortPrice:
 			editor.putString("sort", "price");
 			editor.putBoolean("update", true);
 			editor.commit();
-			finish();
 			startActivity(getIntent());
-			overridePendingTransition(0,0);
+			overridePendingTransition(0, 0);
+			finish();
 			return true;
 		case R.id.action_export:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			final CharSequence[] items = { "All", "Month", "Year" };
+			final CharSequence[] items = { "Month", "Current year",
+					"Previous year", "All" };
 			builder.setTitle(R.string.title_export).setItems(items,
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
@@ -180,26 +197,18 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 													}
 												});
 								builder2.create().show();
-							} else if (type.equals("Year")) {
-								final CharSequence[] itemsYear = { "2014",
-										"2015", "2016" };
-								AlertDialog.Builder builder3 = new AlertDialog.Builder(
-										ViewExpensesActivity.this);
-								builder3.setTitle(R.string.title_year)
-										.setItems(
-												itemsYear,
-												new DialogInterface.OnClickListener() {
-													public void onClick(
-															DialogInterface dialong,
-															int which) {
-														String range = itemsYear[which]
-																.toString();
-														createCSV(range, "year");
-													}
-												});
-								builder3.create().show();
+							} else if (type.equals("Current year")) {
+								int year = Calendar.getInstance().get(
+										Calendar.YEAR);
+								String range = Integer.toString(year);
+								createCSV(range, "year");
+							} else if (type.equals("Previous year")) {
+								int year = Calendar.getInstance().get(
+										Calendar.YEAR);
+								String range = Integer.toString(year - 1);
+								createCSV(range, "year");
 							} else {
-								createCSV(type, "all");
+								createCSV("", "all");
 							}
 						}
 					});
@@ -213,7 +222,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	private void initiateFragments() {
 		FragmentTransaction fragmentTransaction = mFragmentManager
 				.beginTransaction();
-	
+
 		// Check to see if we have retained the fragment which handles
 		// asynchronous backend calls
 		mProcessingFragment = (CloudBackendFragment) mFragmentManager
@@ -228,7 +237,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		fragmentTransaction.commit();
 	}
 
-	private void initializePosts() {
+	private void initializeView() {
 		mExpensesView = (ListView) findViewById(R.id.posts_list);
 		mExpensesView
 				.setOnItemClickListener(new ListView.OnItemClickListener() {
@@ -258,9 +267,59 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 								"categoryPos").toString()));
 						i.putExtra("payment", Integer.parseInt(ce.get(
 								"paymentPos").toString()));
+						
 						startActivity(i);
+						overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
 					}
 				});
+	}
+
+	/**
+	 * Retrieves the list of all expenses from the backend and updates the UI.
+	 */
+	private void listExpenses() {
+		// create a response handler that will receive the result or an error
+		CloudCallbackHandler<List<CloudEntity>> handler = new CloudCallbackHandler<List<CloudEntity>>() {
+			@Override
+			public void onComplete(List<CloudEntity> results) {
+				mExpenses = results;
+				if (settings.getBoolean("update", false)
+						|| data.get("display").equals("correct")) {
+					updateExpenseView();
+				}
+				if (!data.get("display").equals("correct")) {
+					a = new ArrayList<CloudEntity>();
+					for (int i = 0; i < mExpenses.size(); i++) {
+						a.add(mExpenses.get(i));
+					}
+				}
+			}
+
+			@Override
+			public void onError(IOException exception) {
+				handleEndpointException(exception);
+			}
+		};
+		if (data.get("display").equals("view")) {
+			mProcessingFragment.getCloudBackend().listByKind("ERApp",
+					settings.getString("sort", "_createdAt"), Order.DESC, 50,
+					Scope.PAST, handler);
+		} else if (data.get("display").equals("correct")) {
+			mProcessingFragment.getCloudBackend().listByProperty("ERApp",
+					"incomplete", Op.EQ, true, Order.DESC, 50, Scope.PAST,
+					handler);
+		}
+	}
+
+	private void updateExpenseView() {
+		if (!mExpenses.isEmpty()) {
+			emptyView.setVisibility(View.GONE);
+			mExpensesView.setAdapter(new ExpensesListAdapter(this,
+					android.R.layout.simple_list_item_1, mExpenses));
+		} else if (data.get("display").equals("correct")) {
+			emptyView.setText("No incomplete expenses");
+			emptyView.setVisibility(View.VISIBLE);
+		}
 	}
 
 	/**
@@ -421,55 +480,8 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		return mExternalStorageAvailable;
 	}
 
-	/**
-	 * Retrieves the list of all expenses from the backend and updates the UI.
-	 */
-	private void listExpenses() {
-		// create a response handler that will receive the result or an error
-		CloudCallbackHandler<List<CloudEntity>> handler = new CloudCallbackHandler<List<CloudEntity>>() {
-			@Override
-			public void onComplete(List<CloudEntity> results) {
-				mExpenses = results;
-				if (settings.getBoolean("update", false)
-						|| data.get("display").equals("correct")) {
-					updateExpenseView();
-				}
-				if (!data.get("display").equals("correct")) {
-					a = new ArrayList<CloudEntity>();
-					for (int i = 0; i < mExpenses.size(); i++) {
-						a.add(mExpenses.get(i));
-					}
-				}
-			}
-
-			@Override
-			public void onError(IOException exception) {
-				handleEndpointException(exception);
-			}
-		};
-		if (data.get("display").equals("view")) {
-			mProcessingFragment.getCloudBackend().listByKind("ERApp",
-					settings.getString("sort", "_createdAt"), Order.DESC, 50,
-					Scope.PAST, handler);
-		} else if (data.get("display").equals("correct")) {
-			mProcessingFragment.getCloudBackend().listByProperty("ERApp",
-					"incomplete", Op.EQ, true, Order.DESC, 50, Scope.PAST,
-					handler);
-		}
-	}
-
 	private void handleEndpointException(IOException e) {
 		Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
-	}
-
-	private void updateExpenseView() {
-		if (!mExpenses.isEmpty()) {
-			mExpensesView.setAdapter(new ExpensesListAdapter(this,
-					android.R.layout.simple_list_item_1, mExpenses));
-		} else {
-			Toast.makeText(this, "No expenses to display", Toast.LENGTH_LONG)
-					.show();
-		}
 	}
 
 	/**
@@ -478,5 +490,4 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	@Override
 	public void onBroadcastMessageReceived(List<CloudEntity> l) {
 	}
-	
 }

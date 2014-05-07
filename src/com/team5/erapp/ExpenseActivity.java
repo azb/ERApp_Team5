@@ -144,8 +144,8 @@ public class ExpenseActivity extends Activity implements OnListener {
 				|| !merchant.getText().toString().isEmpty()
 				|| !description.getText().toString().isEmpty() || !comment
 				.getText().toString().isEmpty())
-				&& !data.get("display").equals("view") && !data.get("display")
-						.equals("correct")) {
+				&& !data.get("display").equals("view")
+				&& !data.get("display").equals("correct")) {
 			new AlertDialog.Builder(this)
 					.setMessage("Discard expense?")
 					.setNegativeButton(android.R.string.no, null)
@@ -160,6 +160,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 			return;
 		} else {
 			finish();
+			if (data.get("display").equals("view") || data.get("display").equals("correct")) {
+				overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+			}
 		}
 	}
 
@@ -370,12 +373,20 @@ public class ExpenseActivity extends Activity implements OnListener {
 		} else {
 			mProcessingFragment.getCloudBackend().insert(expense, handler);
 		}
-
+		Toast.makeText(this, "Submitted", Toast.LENGTH_SHORT).show();
 		// return to previous activity
 		editor.putBoolean("update", true);
 		editor.commit();
 		finish();
-		Toast.makeText(this, "Submitted", Toast.LENGTH_SHORT).show();
+		if (data.get("display").equals("correct")) {
+			editor.putString("sort", "_createdAt");
+			editor.commit();
+			Intent intent = new Intent(this, ViewExpensesActivity.class);
+			intent.putExtra("display", "correct");
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+			startActivity(intent);
+		}
 	}
 
 	private void handleEndpointException(IOException e) {

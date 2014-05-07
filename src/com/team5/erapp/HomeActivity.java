@@ -14,7 +14,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 public class HomeActivity extends Activity {
 
@@ -37,7 +36,8 @@ public class HomeActivity extends Activity {
 			Button addEmployee = (Button) findViewById(R.id.button_addEmployee);
 			addEmployee.setVisibility(View.GONE);
 		}
-		SharedPreferences.Editor editor = settings.edit();;
+		settings = getSharedPreferences(PREFS_NAME, 0);
+		SharedPreferences.Editor editor = settings.edit();
 		editor.putBoolean("update", true);
 		editor.commit();
 	}
@@ -83,7 +83,7 @@ public class HomeActivity extends Activity {
 	}
 
 	public void viewExpense(View view) {
-		settings = getSharedPreferences(PREFS_NAME, 0);
+		
 		SharedPreferences.Editor editor = settings.edit();;
 		editor.putString("sort", settings.getString("sort", "_createdAt"));
 		Intent intent = new Intent(this, ViewExpensesActivity.class);
@@ -98,7 +98,7 @@ public class HomeActivity extends Activity {
 
 	public void correctExpense(View view) {
 		settings = getSharedPreferences(PREFS_NAME, 0);
-		SharedPreferences.Editor editor = settings.edit();;
+		SharedPreferences.Editor editor = settings.edit();
 		editor.putString("sort", "_createdAt");
 		editor.commit();
 		Intent intent = new Intent(this, ViewExpensesActivity.class);

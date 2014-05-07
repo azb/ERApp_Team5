@@ -222,7 +222,6 @@ public class CloudEntity implements Parcelable {
         dest.writeString(owner);
     }
 
-    @SuppressWarnings("unused")
     public static final Parcelable.Creator<CloudEntity> CREATOR = new Parcelable.Creator<CloudEntity>() {
         @Override
         public CloudEntity createFromParcel(Parcel in) {

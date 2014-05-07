@@ -12,4 +12,13 @@
         android:focusable="false"
         android:focusableInTouchMode="false" />
 
+    <TextView
+        android:id="@+id/no_expenses"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="@string/no_expenses"
+        android:textSize="20sp"
+        android:visibility="gone" />
+    
 </RelativeLayout>

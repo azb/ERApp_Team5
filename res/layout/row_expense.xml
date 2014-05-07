@@ -11,8 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:paddingRight="10dp"
-        android:text="date" />
+        android:paddingRight="10dp" />
 
     <View
         android:layout_width="1dp"
@@ -26,8 +25,7 @@
         android:layout_gravity="center"
         android:layout_weight="1"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:text="Description" />
+        android:paddingRight="10dp" />
 
     
     
@@ -44,7 +42,6 @@
             android:layout_marginRight="5dp"
             android:paddingBottom="15dp"
             android:paddingTop="15dp"
-            android:text="price"
             android:textSize="16sp" />
 
     </LinearLayout>
