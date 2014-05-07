@@ -5,6 +5,7 @@ import java.io.File;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -160,8 +161,10 @@ public class ExpenseActivity extends Activity implements OnListener {
 			return;
 		} else {
 			finish();
-			if (data.get("display").equals("view") || data.get("display").equals("correct")) {
-				overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+			if (data.get("display").equals("view")
+					|| data.get("display").equals("correct")) {
+				overridePendingTransition(android.R.anim.slide_in_left,
+						android.R.anim.slide_out_right);
 			}
 		}
 	}
@@ -312,50 +315,56 @@ public class ExpenseActivity extends Activity implements OnListener {
 			expense = data.getParcelable("expense");
 			expense.put("correctable", false);
 		}
-
+		List<Object> list = new ArrayList<Object>();
 		Boolean incomplete = false;
 		if (price.getText().toString().isEmpty()) {
 			incomplete = true;
-			expense.put("price", -1);
+			list.add(-1);
 		} else {
-			expense.put("price", Double.parseDouble(price.getText().toString()));
+			list.add(Double.parseDouble(price.getText().toString()));
 		}
 		if (merchant.getText().toString().isEmpty()) {
 			incomplete = true;
-			expense.put("merchant", "");
+			list.add("");
 		} else {
-			expense.put("merchant", merchant.getText().toString());
+			list.add(merchant.getText().toString());
 		}
 		if (description.getText().toString().isEmpty()) {
 			incomplete = true;
-			expense.put("description", "");
+			list.add("");
 		} else {
-			expense.put("description", description.getText().toString());
+			list.add(description.getText().toString());
 		}
 		if (date.getText().toString().isEmpty()) {
 			incomplete = true;
-			expense.put("date", "");
+			list.add("");
 		} else {
-			expense.put("date", date.getText().toString());
+			list.add(date.getText().toString());
+		}
+		if (comment.getText().toString().isEmpty()) {
+			list.add("");
+		} else {
+			list.add(comment.getText().toString());
 		}
 		if (category.getSelectedItem().toString().equals("Category")) {
 			incomplete = true;
 		}
+		list.add(currency.getSelectedItem().toString());
+		list.add(currency.getSelectedItemPosition());
+		list.add(payment.getSelectedItem().toString());
+		list.add(payment.getSelectedItemPosition());
+		list.add(category.getSelectedItem().toString());
+		list.add(category.getSelectedItemPosition());
 		expense.put("incomplete", incomplete);
+		expense.put("price", Double.parseDouble(price.getText().toString()));
 		expense.setCreatedBy("Name");
 		expense.setUpdatedBy("Name");
-		expense.put("comment", comment.getText().toString());
-		expense.put("currency", currency.getSelectedItem().toString());
-		expense.put("currencyPos", currency.getSelectedItemPosition());
-		expense.put("payment", payment.getSelectedItem().toString());
-		expense.put("paymentPos", payment.getSelectedItemPosition());
-		expense.put("category", category.getSelectedItem().toString());
-		expense.put("categoryPos", category.getSelectedItemPosition());
-
 		// save currency
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putInt("index", currency.getSelectedItemPosition());
 		editor.commit();
+
+		expense.put("ex", list);
 
 		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
@@ -375,8 +384,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		}
 		Toast.makeText(this, "Submitted", Toast.LENGTH_SHORT).show();
 		// return to previous activity
-		editor.putBoolean("update", true);
-		editor.commit();
 		finish();
 		if (data.get("display").equals("correct")) {
 			editor.putString("sort", "_createdAt");
@@ -384,7 +391,8 @@ public class ExpenseActivity extends Activity implements OnListener {
 			Intent intent = new Intent(this, ViewExpensesActivity.class);
 			intent.putExtra("display", "correct");
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+			overridePendingTransition(android.R.anim.slide_in_left,
+					android.R.anim.slide_out_right);
 			startActivity(intent);
 		}
 	}
@@ -424,10 +432,10 @@ public class ExpenseActivity extends Activity implements OnListener {
 		description.setText(data.get("description").toString());
 		date.setText(data.get("date").toString());
 		comment.setText(data.get("comment").toString());
-		currency.setSelection(data.getInt("currency"));
-		category.setSelection(data.getInt("category"));
-		payment.setSelection(data.getInt("payment"));
-
+		currency.setSelection((int) Double.parseDouble(data.get("currency").toString()));
+		category.setSelection((int) Double.parseDouble(data.get("category").toString()));
+		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
+ 
 		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
 
 		if (data.get("display").equals("view")) {

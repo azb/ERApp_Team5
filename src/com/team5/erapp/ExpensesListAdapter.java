@@ -41,20 +41,21 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 				R.layout.row_expense, parent, false);
 
 		CloudEntity ce = getItem(position);
+		List<Object> a = (List<Object>) ce.get("ex");
 		if (ce != null) {
 			TextView price = (TextView) view.findViewById(R.id.price);
 			TextView description = (TextView) view
 					.findViewById(R.id.description);
 			TextView date = (TextView) view.findViewById(R.id.addExpense_price);
-			double amount = Double.parseDouble(ce.get("price").toString());
+			double amount = Double.parseDouble(a.get(0).toString());
 			amount = Math.round(amount);
 			if (amount >= 0) {
 				price.setText("$" + (int) amount);
 			} else {
 				price.setText("empty");
 			}
-			if(!ce.get("description").toString().equals("")) {
-				description.setText(ce.get("description").toString());
+			if (!a.get(2).toString().equals("")) {
+				description.setText(a.get(2).toString());
 			} else {
 				description.setText("No description");
 			}			

@@ -85,30 +85,23 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		if (data.get("display").equals("correct")) {
 			setTitle("Incomplete Expenses");
 		}
-		if (!settings.getBoolean("update", true)
-				&& !data.get("display").equals("correct")) {
-			for (int i = 0; i < HomeActivity.a.size(); i++) {
-				mExpenses.add(HomeActivity.a.get(i));
-			}
-			updateExpenseView();
-		} else {
-			emptyView.setText("Loading...");
-			emptyView.setVisibility(View.VISIBLE);
-			Thread loadThread = new Thread() {
+		emptyView.setText("Loading...");
+		emptyView.setVisibility(View.VISIBLE);
+		Thread loadThread = new Thread() {
 
-				@Override
-				public void run() {
-					try {
-						super.run();
-					} catch (Exception e) {
+			@Override
+			public void run() {
+				try {
+					super.run();
+				} catch (Exception e) {
 
-					}
 				}
-			};
-			loadThread.start();
-			mFragmentManager = getFragmentManager();
-			initiateFragments();
-		}
+			}
+		};
+		loadThread.start();
+		mFragmentManager = getFragmentManager();
+		initiateFragments();
+
 	}
 
 	/**
@@ -117,18 +110,6 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	@Override
 	public void onCreateFinished() {
 		listExpenses();
-	}
-
-	@Override
-	public void onBackPressed() {
-		if (settings.getBoolean("update", false)
-				&& data.get("display").equals("view")) {
-			HomeActivity.saveList(a);
-			SharedPreferences.Editor editor = settings.edit();
-			editor.putBoolean("update", false);
-			editor.commit();
-		}
-		finish();
 	}
 
 	@Override
@@ -152,7 +133,6 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		switch (item.getItemId()) {
 		case R.id.action_sortDate:
 			editor.putString("sort", "_createdAt");
-			editor.putBoolean("update", true);
 			editor.commit();
 			startActivity(getIntent());
 			overridePendingTransition(0, 0);
@@ -160,7 +140,6 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			return true;
 		case R.id.action_sortPrice:
 			editor.putString("sort", "price");
-			editor.putBoolean("update", true);
 			editor.commit();
 			startActivity(getIntent());
 			overridePendingTransition(0, 0);
@@ -254,22 +233,20 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 						} else if (data.get("display").equals("correct")) {
 							i.putExtra("display", "correct");
 						}
+						List<Object> ab = (ArrayList<Object>) ce.get("ex");
 						i.putExtra("expense", ce);
-						i.putExtra("price", ce.get("price").toString());
-						i.putExtra("merchant", ce.get("merchant").toString());
-						i.putExtra("description", ce.get("description")
-								.toString());
-						i.putExtra("date", ce.get("date").toString());
-						i.putExtra("comment", ce.get("comment").toString());
-						i.putExtra("currency", Integer.parseInt(ce.get(
-								"currencyPos").toString()));
-						i.putExtra("category", Integer.parseInt(ce.get(
-								"categoryPos").toString()));
-						i.putExtra("payment", Integer.parseInt(ce.get(
-								"paymentPos").toString()));
-						
+						i.putExtra("price", ab.get(0).toString());
+						i.putExtra("merchant", ab.get(1).toString());
+						i.putExtra("description", ab.get(2).toString());
+						i.putExtra("date", ab.get(3).toString());
+						i.putExtra("comment", ab.get(4).toString());
+						i.putExtra("currency", ab.get(6).toString());
+						i.putExtra("category", ab.get(10).toString());
+						i.putExtra("payment", ab.get(8).toString());
+
 						startActivity(i);
-						overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+						overridePendingTransition(android.R.anim.slide_in_left,
+								android.R.anim.slide_out_right);
 					}
 				});
 	}
@@ -283,16 +260,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			@Override
 			public void onComplete(List<CloudEntity> results) {
 				mExpenses = results;
-				if (settings.getBoolean("update", false)
-						|| data.get("display").equals("correct")) {
-					updateExpenseView();
-				}
-				if (!data.get("display").equals("correct")) {
-					a = new ArrayList<CloudEntity>();
-					for (int i = 0; i < mExpenses.size(); i++) {
-						a.add(mExpenses.get(i));
-					}
-				}
+				updateExpenseView();
 			}
 
 			@Override
@@ -302,11 +270,11 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		};
 		if (data.get("display").equals("view")) {
 			mProcessingFragment.getCloudBackend().listByKind("ERApp",
-					settings.getString("sort", "_createdAt"), Order.DESC, 50,
+					settings.getString("sort", "_createdAt"), Order.DESC, 500,
 					Scope.PAST, handler);
 		} else if (data.get("display").equals("correct")) {
 			mProcessingFragment.getCloudBackend().listByProperty("ERApp",
-					"incomplete", Op.EQ, true, Order.DESC, 50, Scope.PAST,
+					"incomplete", Op.EQ, true, Order.DESC, 500, Scope.PAST,
 					handler);
 		}
 	}
@@ -361,7 +329,8 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 */
 	public String setRange(String str1, String range, String type) {
 		for (int i = 0; i < mExpenses.size(); i++) {
-			String date = mExpenses.get(i).get("date").toString();
+			List<Object> a = (ArrayList<Object>) mExpenses.get(i).get("ex");
+			String date = a.get(3).toString();
 			if (type.equals("all")) {
 				str1 = appendEx(str1, i);
 			} else if (type.equals("year")) {
@@ -400,20 +369,15 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 * @return A String containing expense data from chosen range.
 	 */
 	public String appendEx(String str1, int i) {
-		str1 += mExpenses.get(i).get("price").toString().replaceAll(",", ".")
-				+ ",";
-		str1 += mExpenses.get(i).get("currency").toString() + ",";
-		str1 += mExpenses.get(i).get("payment").toString() + ",";
-		str1 += mExpenses.get(i).get("merchant").toString()
-				.replaceAll(",", ";")
-				+ ",";
-		str1 += mExpenses.get(i).get("category").toString() + ",";
-		str1 += mExpenses.get(i).get("date").toString() + ",";
-		str1 += mExpenses.get(i).get("description").toString()
-				.replaceAll(",", ";")
-				+ ",";
-		str1 += mExpenses.get(i).get("comment").toString().replaceAll(",", ";")
-				+ ",";
+		List<Object> a = (ArrayList<Object>) mExpenses.get(i).get("ex");
+		str1 += a.get(0).toString().replaceAll(",", ".") + ",";
+		str1 += a.get(5).toString() + ",";
+		str1 += a.get(7).toString() + ",";
+		str1 += a.get(1).toString().replaceAll(",", ";") + ",";
+		str1 += a.get(9).toString() + ",";
+		str1 += a.get(3).toString() + ",";
+		str1 += a.get(2).toString().replaceAll(",", ";") + ",";
+		str1 += a.get(4).toString().replaceAll(",", ";") + ",";
 		str1 += "\n";
 		return str1;
 	}
