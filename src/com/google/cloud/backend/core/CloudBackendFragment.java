@@ -165,8 +165,8 @@ public class CloudBackendFragment extends Fragment {
                     	callback.onBroadcastMessageReceived(results);
                     }
                 };
-        mCloudBackend.subscribeToCloudMessage(
-                CloudBackendMessaging.TOPIC_ID_BROADCAST, handler);
+//        mCloudBackend.subscribeToCloudMessage(
+//                CloudBackendMessaging.TOPIC_ID_BROADCAST, handler);
 
         callback.onCreateFinished();
     }

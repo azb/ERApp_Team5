@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -80,27 +81,30 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		setContentView(R.layout.activity_display_expenses);
 		initializeView();
 		emptyView = (TextView) findViewById(R.id.no_expenses);
+		emptyView.setText("Loading...");
+		emptyView.setVisibility(View.VISIBLE);
 		data = getIntent().getExtras();
 		if (data.get("display").equals("correct")) {
 			setTitle("Incomplete Expenses");
-		}
-		emptyView.setText("Loading...");
-		emptyView.setVisibility(View.VISIBLE);
-		Thread loadThread = new Thread() {
-
-			@Override
-			public void run() {
-				try {
-					super.run();
-				} catch (Exception e) {
-
-				}
+			if (data.getBoolean("delay", false)) {
+				Handler handler = new Handler();
+				Runnable run = new Runnable() {
+					@Override
+				    public void run() {
+						mFragmentManager = getFragmentManager();
+						initiateFragments();
+				    }
+				};
+				handler.postDelayed(run, 500);
+			} 
+			else {
+				mFragmentManager = getFragmentManager();
+				initiateFragments();
 			}
-		};
-		loadThread.start();
-		mFragmentManager = getFragmentManager();
-		initiateFragments();
-
+		} else {
+			mFragmentManager = getFragmentManager();
+			initiateFragments();
+		}
 	}
 
 	/**
@@ -243,10 +247,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 						i.putExtra("currency", ab.get(6).toString());
 						i.putExtra("category", ab.get(10).toString());
 						i.putExtra("payment", ab.get(8).toString());
-
 						startActivity(i);
-						overridePendingTransition(android.R.anim.slide_in_left,
-								android.R.anim.slide_out_right);
 					}
 				});
 	}

@@ -37,6 +37,7 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -161,11 +162,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 			return;
 		} else {
 			finish();
-			if (data.get("display").equals("view")
-					|| data.get("display").equals("correct")) {
-				overridePendingTransition(android.R.anim.slide_in_left,
-						android.R.anim.slide_out_right);
-			}
 		}
 	}
 
@@ -425,19 +421,24 @@ public class ExpenseActivity extends Activity implements OnListener {
 		} else {
 			mProcessingFragment.getCloudBackend().insert(expense, handler);
 		}
-		Toast.makeText(this, "Submitted", Toast.LENGTH_SHORT).show();
+		
 		// return to previous activity
 		finish();
 		if (data.get("display").equals("correct")) {
-			editor.putString("sort", "_createdAt");
-			editor.commit();
 			Intent intent = new Intent(this, ViewExpensesActivity.class);
 			intent.putExtra("display", "correct");
+			intent.putExtra("delay", true);
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			overridePendingTransition(android.R.anim.slide_in_left,
-					android.R.anim.slide_out_right);
 			startActivity(intent);
 		}
+		Handler toaster = new Handler();
+		Runnable run = new Runnable() {
+			@Override
+		    public void run() {
+				Toast.makeText(ExpenseActivity.this, "Submitted", Toast.LENGTH_SHORT).show();
+		    }
+		};
+		toaster.postDelayed(run, 400);
 	}
 
 	private void handleEndpointException(IOException e) {
