@@ -1,5 +1,8 @@
 package com.team5.erapp;
 
+import java.util.ArrayList;
+
+import com.google.cloud.backend.core.CloudEntity;
 import com.team5.erapp.R;
 
 import android.app.Activity;
@@ -11,9 +14,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class HomeActivity extends Activity {
 
+	public static ArrayList<CloudEntity> a;
 	public final static String EXTRA_MESSAGE = "com.example.app.MESSAGE";
 	public static final String PREFS_NAME = "MyPrefsFile";
 	SharedPreferences settings;
@@ -31,9 +36,12 @@ public class HomeActivity extends Activity {
 		if(!adminCheck()) {
 			Button addEmployee = (Button) findViewById(R.id.button_addEmployee);
 			addEmployee.setVisibility(View.GONE);
-		}		
+		}
+		SharedPreferences.Editor editor = settings.edit();;
+		editor.putBoolean("update", true);
+		editor.commit();
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main, menu);
@@ -77,10 +85,14 @@ public class HomeActivity extends Activity {
 	public void viewExpense(View view) {
 		settings = getSharedPreferences(PREFS_NAME, 0);
 		SharedPreferences.Editor editor = settings.edit();;
-		editor.putString("sort", "_createdAt");
-		editor.commit();
+		editor.putString("sort", settings.getString("sort", "_createdAt"));
 		Intent intent = new Intent(this, ViewExpensesActivity.class);
 		intent.putExtra("display", "view");
+		if (!settings.getBoolean("update", true)) {
+			intent.putParcelableArrayListExtra("list", a);
+			editor.putBoolean("update", false);
+		}
+		editor.commit();
 		startActivity(intent);
 	}
 
@@ -97,5 +109,9 @@ public class HomeActivity extends Activity {
 	public void addEmployee(View view) {
 		Intent intent = new Intent(this, AddEmployeeActivity.class);
 		startActivity(intent);
+	}
+	
+	public static void saveList(ArrayList<CloudEntity> al) {
+		a = al;
 	}
 }

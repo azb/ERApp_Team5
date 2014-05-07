@@ -19,8 +19,10 @@ import com.team5.erapp.R;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -62,7 +64,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private Button submit;
 	private SharedPreferences settings;
 	private String imagePath;
-	
+
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
 
@@ -127,11 +129,38 @@ public class ExpenseActivity extends Activity implements OnListener {
 		});
 
 		Bundle data = getIntent().getExtras();
-		if (data.get("display").equals("view") || data.get("display").equals("correct")) {
+		if (data.get("display").equals("view")
+				|| data.get("display").equals("correct")) {
 			setTitle("Correct Expense");
 			setInputs();
 		}
 		initiateFragments();
+	}
+
+	@Override
+	public void onBackPressed() {
+		Bundle data = getIntent().getExtras();
+		if ((!price.getText().toString().isEmpty()
+				|| !merchant.getText().toString().isEmpty()
+				|| !description.getText().toString().isEmpty() || !comment
+				.getText().toString().isEmpty())
+				&& !data.get("display").equals("view") && !data.get("display")
+						.equals("correct")) {
+			new AlertDialog.Builder(this)
+					.setMessage("Discard expense?")
+					.setNegativeButton(android.R.string.no, null)
+					.setPositiveButton(android.R.string.yes,
+							new DialogInterface.OnClickListener() {
+
+								public void onClick(DialogInterface arg0,
+										int arg1) {
+									finish();
+								}
+							}).create().show();
+			return;
+		} else {
+			finish();
+		}
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -139,8 +168,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 			if (resultCode == RESULT_OK) {
 				Uri photoUri = null;
 				if (data == null) {
-					Toast.makeText(this, "Image saved successfully",
-							Toast.LENGTH_LONG).show();
 					photoUri = fileUri;
 				} else {
 					photoUri = data.getData();
@@ -173,7 +200,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 									bitmap.getHeight(), matrix, true);
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			BitmapDrawable drawable = new BitmapDrawable(this.getResources(),
@@ -327,7 +353,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putInt("index", currency.getSelectedItemPosition());
 		editor.commit();
-		
+
 		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
@@ -339,17 +365,16 @@ public class ExpenseActivity extends Activity implements OnListener {
 			}
 		};
 
-		if (data.getBoolean("correct") == true && !incomplete) {
+		if (data.getBoolean("correct") && !incomplete) {
 			mProcessingFragment.getCloudBackend().update(expense, handler);
 		} else {
 			mProcessingFragment.getCloudBackend().insert(expense, handler);
 		}
 
-		// return to HomeActivity
-		Intent intent = new Intent(this, HomeActivity.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
-				| Intent.FLAG_ACTIVITY_NEW_TASK);
-		startActivity(intent);
+		// return to previous activity
+		editor.putBoolean("update", true);
+		editor.commit();
+		finish();
 		Toast.makeText(this, "Submitted", Toast.LENGTH_SHORT).show();
 	}
 
@@ -391,14 +416,14 @@ public class ExpenseActivity extends Activity implements OnListener {
 		currency.setSelection(data.getInt("currency"));
 		category.setSelection(data.getInt("category"));
 		payment.setSelection(data.getInt("payment"));
-		
+
 		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
-		
+
 		if (data.get("display").equals("view")) {
 			setTitle("Expense");
 			TextView priceTitle = (TextView) findViewById(R.id.addExpense_price);
 			LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
-			
+
 			priceTitle.setPadding(0, 10, 0, 0);
 			layout.setVisibility(View.GONE);
 			price.setFocusable(false);
