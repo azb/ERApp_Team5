@@ -67,6 +67,8 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private SharedPreferences settings;
 	private String imagePath;
 	private String toast;
+	private int length;
+	private boolean incomplete;
 
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
@@ -99,7 +101,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		submit = (Button) findViewById(R.id.button_submit);
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
-		toast = "Submitted";
 
 		currency.setSelection(settings.getInt("index", 7));
 		img.setBackgroundColor(Color.GRAY);
@@ -224,6 +225,125 @@ public class ExpenseActivity extends Activity implements OnListener {
 	}
 
 	/**
+	 * onClick method. Sends input in text fields to datastore.
+	 */
+	public void onSendButtonPressed(View view) {
+		if (isEmpty(price) && isEmpty(merchant) && isEmpty(description)
+				&& isEmpty(comment)) {
+			Toast.makeText(this, "Nothing to submit", Toast.LENGTH_SHORT)
+					.show();
+			return;
+		}
+	
+		String acc = settings.getString("email", "");
+		if (settings.getBoolean("employee", false)) {
+			acc = settings.getString("company", "");
+		}
+		CloudEntity expense = new CloudEntity("ERApp_" + acc);
+		expense = addData(expense);
+
+		toast = "Submitted";
+		length = 0;
+		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
+			@Override
+			public void onComplete(final CloudEntity result) {
+			}
+	
+			@Override
+			public void onError(final IOException exception) {
+				toast = "Unable to connect to server";
+				length = 1;
+			}
+		};
+		Bundle data = getIntent().getExtras();
+		if (data.getBoolean("correct") && !incomplete) {
+			mProcessingFragment.getCloudBackend().update(expense, handler);
+		} else {
+			mProcessingFragment.getCloudBackend().insert(expense, handler);
+		}
+	
+		// return to previous activity
+		finish();
+		if (data.get("display").equals("correct")) {
+			Intent intent = new Intent(this, ViewExpensesActivity.class);
+			intent.putExtra("display", "correct");
+			intent.putExtra("delay", true);
+			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
+		}
+		Handler toaster = new Handler();
+		Runnable run = new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(ExpenseActivity.this, toast, length).show();
+			}
+		};
+		toaster.postDelayed(run, 500);
+	}
+
+	private CloudEntity addData(CloudEntity expense) {
+		// use selected CloudEntity if correcting
+		Bundle data = getIntent().getExtras();
+		expense.put("correctable", true);
+		if (data.get("display").equals("correct")) {
+			expense = data.getParcelable("expense");
+			expense.put("correctable", false);
+		}
+		List<Object> list = new ArrayList<Object>();
+		incomplete = false;
+		if (isEmpty(price)) {
+			incomplete = true;
+			list.add(-1);
+			expense.put("price", -1);
+		} else {
+			expense.put("price", Double.parseDouble(price.getText().toString()));
+			list.add(Double.parseDouble(price.getText().toString()));
+		}
+		if (isEmpty(merchant)) {
+			incomplete = true;
+			list.add("");
+		} else {
+			list.add(merchant.getText().toString());
+		}
+		if (isEmpty(description)) {
+			incomplete = true;
+			list.add("");
+		} else {
+			list.add(description.getText().toString());
+		}
+		if (isEmpty(date)) {
+			incomplete = true;
+			list.add("");
+		} else {
+			list.add(date.getText().toString());
+		}
+		if (isEmpty(comment)) {
+			list.add("");
+		} else {
+			list.add(comment.getText().toString());
+		}
+		if (category.getSelectedItem().toString().equals("Category")) {
+			incomplete = true;
+		}
+		list.add(currency.getSelectedItem().toString());
+		list.add(currency.getSelectedItemPosition());
+		list.add(payment.getSelectedItem().toString());
+		list.add(payment.getSelectedItemPosition());
+		list.add(category.getSelectedItem().toString());
+		list.add(category.getSelectedItemPosition());
+		expense.put("incomplete", incomplete);
+		expense.setCreatedBy(settings.getString("email", ""));
+		expense.put("ex", list);
+	
+		// save currency
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putInt("index", currency.getSelectedItemPosition());
+		editor.commit();
+	
+		return expense;
+	}
+
+	/**
 	 * Sets existing data into fields if correcting or viewing an expense.
 	 */
 	private void setInputs() {
@@ -251,10 +371,10 @@ public class ExpenseActivity extends Activity implements OnListener {
 
 		if (data.get("display").equals("view")) {
 			setTitle("Expense");
-			TextView priceTitle = (TextView) findViewById(R.id.addExpense_price);
+			TextView priceTitle = (TextView) findViewById(R.id.row_date);
 			LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
 
-			priceTitle.setPadding(0, 10, 0, 0);
+			priceTitle.setPadding(0, 15, 0, 0);
 			layout.setVisibility(View.GONE);
 			price.setFocusable(false);
 			merchant.setFocusable(false);
@@ -266,6 +386,24 @@ public class ExpenseActivity extends Activity implements OnListener {
 			payment.setClickable(false);
 			submit.setVisibility(View.GONE);
 		}
+	}
+
+	private boolean isEmpty(EditText etText) {
+		return etText.getText().toString().trim().length() == 0;
+	}
+
+	private void initiateFragments() {
+		FragmentTransaction fragmentTransaction = mFragmentManager
+				.beginTransaction();
+		mProcessingFragment = (CloudBackendFragment) mFragmentManager
+				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
+		if (mProcessingFragment == null) {
+			mProcessingFragment = new CloudBackendFragment();
+			mProcessingFragment.setRetainInstance(true);
+			fragmentTransaction.add(mProcessingFragment,
+					PROCESSING_FRAGMENT_TAG);
+		}
+		fragmentTransaction.commit();
 	}
 
 	private File getOutputPhotoFile() {
@@ -319,137 +457,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 			photoImage.setImageDrawable(drawable);
 			img.setBackgroundColor(Color.TRANSPARENT);
 		}
-	}
-
-	private void initiateFragments() {
-		FragmentTransaction fragmentTransaction = mFragmentManager
-				.beginTransaction();
-		mProcessingFragment = (CloudBackendFragment) mFragmentManager
-				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
-		if (mProcessingFragment == null) {
-			mProcessingFragment = new CloudBackendFragment();
-			mProcessingFragment.setRetainInstance(true);
-			fragmentTransaction.add(mProcessingFragment,
-					PROCESSING_FRAGMENT_TAG);
-		}
-		fragmentTransaction.commit();
-	}
-
-	/**
-	 * onClick method. Sends input in text fields to datastore.
-	 */
-	public void onSendButtonPressed(View view) {
-		if (price.getText().toString().isEmpty()
-				&& merchant.getText().toString().isEmpty()
-				&& description.getText().toString().isEmpty()
-				&& comment.getText().toString().isEmpty()) {
-			Toast.makeText(this, "Nothing to submit", Toast.LENGTH_SHORT)
-					.show();
-			return;
-		}
-
-		// change CloudEntity Object to include user's name/email or company's
-		// name/email
-		CloudEntity expense = new CloudEntity("ERApp");
-		expense.put("correctable", true);
-		// use selected CloudEntity if correcting
-		Bundle data = getIntent().getExtras();
-		if (data.get("display").equals("correct")) {
-			expense = data.getParcelable("expense");
-			expense.put("correctable", false);
-		}
-		List<Object> list = new ArrayList<Object>();
-		Boolean incomplete = false;
-		if (price.getText().toString().isEmpty()) {
-			incomplete = true;
-			list.add(-1);
-			expense.put("price", -1);
-		} else {
-			expense.put("price", Double.parseDouble(price.getText().toString()));
-			list.add(Double.parseDouble(price.getText().toString()));
-		}
-		if (merchant.getText().toString().isEmpty()) {
-			incomplete = true;
-			list.add("");
-		} else {
-			list.add(merchant.getText().toString());
-		}
-		if (description.getText().toString().isEmpty()) {
-			incomplete = true;
-			list.add("");
-		} else {
-			list.add(description.getText().toString());
-		}
-		if (date.getText().toString().isEmpty()) {
-			incomplete = true;
-			list.add("");
-		} else {
-			list.add(date.getText().toString());
-		}
-		if (comment.getText().toString().isEmpty()) {
-			list.add("");
-		} else {
-			list.add(comment.getText().toString());
-		}
-		if (category.getSelectedItem().toString().equals("Category")) {
-			incomplete = true;
-		}
-		list.add(currency.getSelectedItem().toString());
-		list.add(currency.getSelectedItemPosition());
-		list.add(payment.getSelectedItem().toString());
-		list.add(payment.getSelectedItemPosition());
-		list.add(category.getSelectedItem().toString());
-		list.add(category.getSelectedItemPosition());
-		expense.put("incomplete", incomplete);
-		expense.setCreatedBy("Name");
-		expense.setUpdatedBy("Name");
-		// save currency
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putInt("index", currency.getSelectedItemPosition());
-		editor.commit();
-
-		expense.put("ex", list);
-		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
-			@Override
-			public void onComplete(final CloudEntity result) {
-			}
-
-			@Override
-			public void onError(final IOException exception) {
-				handleEndpointException(exception);
-				toast = "Unable to connect to server";
-			}
-		};
-
-		if (data.getBoolean("correct") && !incomplete) {
-			mProcessingFragment.getCloudBackend().update(expense, handler);
-		} else {
-			mProcessingFragment.getCloudBackend().insert(expense, handler);
-		}
-
-		// return to previous activity
-		finish();
-		if (data.get("display").equals("correct")) {
-			Intent intent = new Intent(this, ViewExpensesActivity.class);
-			intent.putExtra("display", "correct");
-			intent.putExtra("delay", true);
-			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
-		}
-		Handler toaster = new Handler();
-		Runnable run = new Runnable() {
-			@Override
-			public void run() {
-				Toast.makeText(ExpenseActivity.this, toast, Toast.LENGTH_SHORT)
-						.show();
-			}
-		};
-		toaster.postDelayed(run, 500);
-	}
-
-	private void handleEndpointException(IOException e) {
-		Toast.makeText(this, "Unable to connect to server", Toast.LENGTH_LONG)
-				.show();
 	}
 
 	/**

@@ -269,12 +269,16 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				handleEndpointException(exception);
 			}
 		};
+		String acc = settings.getString("email", "");
+		if (settings.getBoolean("employee", false)) {
+			acc = settings.getString("company", "");
+		}
 		if (data.get("display").equals("view")) {
-			mProcessingFragment.getCloudBackend().listByKind("ERApp",
+			mProcessingFragment.getCloudBackend().listByKind("ERApp_" + acc,
 					settings.getString("sort", "_createdAt"), Order.DESC, 500,
 					Scope.PAST, handler);
 		} else if (data.get("display").equals("correct")) {
-			mProcessingFragment.getCloudBackend().listByProperty("ERApp",
+			mProcessingFragment.getCloudBackend().listByProperty("ERApp_" + acc,
 					"incomplete", Op.EQ, true, Order.DESC, 500, Scope.PAST,
 					handler);
 		}
@@ -287,6 +291,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					android.R.layout.simple_list_item_1, mExpenses));
 		} else if (data.get("display").equals("correct")) {
 			emptyView.setText("No incomplete expenses");
+			emptyView.setVisibility(View.VISIBLE);
+		} else {
+			emptyView.setText("No expenses");
 			emptyView.setVisibility(View.VISIBLE);
 		}
 	}

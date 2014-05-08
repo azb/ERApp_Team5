@@ -1,6 +1,8 @@
 package com.team5.erapp;
 
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -44,14 +46,14 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 		@SuppressWarnings("unchecked")
 		List<Object> a = (List<Object>) ce.get("ex");
 		if (ce != null) {
-			TextView price = (TextView) view.findViewById(R.id.price);
+			TextView price = (TextView) view.findViewById(R.id.row_price);
 			TextView description = (TextView) view
-					.findViewById(R.id.description);
-			TextView date = (TextView) view.findViewById(R.id.addExpense_price);
+					.findViewById(R.id.row_description);
+			TextView date = (TextView) view.findViewById(R.id.row_date);
 			double amount = Double.parseDouble(a.get(0).toString());
 			amount = Math.round(amount);
 			if (amount >= 0) {
-				price.setText("$" + (int) amount);
+				price.setText("$" + NumberFormat.getNumberInstance(Locale.US).format(amount));
 			} else {
 				price.setText("empty");
 			}

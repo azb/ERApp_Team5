@@ -6,7 +6,6 @@
     <string name="edit_message">Enter a message</string>
     <string name="button_add">Add Expense</string>
     <string name="title_activity_display_message">Add Expense</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_logout">Logout</string>
     <string name="title_activity_view_expenses">Expenses</string>
     <string name="button_submit">Submit</string>
@@ -34,19 +33,20 @@
     <string name="text_Description">Description</string>
     <string name="text_Payment">Payment Type</string>
     <string name="text_date">Date</string>
-    <string name="check_corporate">Corporate</string>
+    <string name="check_company">Corporate user</string>
     <string name="button_adds">Add</string>
     <string name="hint_date">M/D/YYYY</string>
     <string name="button_addfromfile">Add from file</string>
-	<string name="hint_name">Name</string>
-	<string name="action_sortDate">Sort by date</string>
-	<string name="action_sortPrice">Sort by price</string>
-	<string name="action_export">Export to CSV</string>
-	<string name="title_export">Select range</string>
-	<string name="title_month">Select month</string>
-	<string name="title_year">Select year</string>
-	<string name="no_expenses">No expenses</string>
-	
+    <string name="hint_name">Name</string>
+    <string name="action_sortDate">Sort by date</string>
+    <string name="action_sortPrice">Sort by price</string>
+    <string name="action_export">Export to CSV</string>
+    <string name="title_export">Select range</string>
+    <string name="title_month">Select month</string>
+    <string name="title_year">Select year</string>
+    <string name="no_expenses">No expenses</string>
+    <string name="company_signup">Company</string>
+
     <string-array name="entries_category">
         <item>Category</item>
         <item>Bill</item>

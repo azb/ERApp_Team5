@@ -45,7 +45,6 @@
         android:layout_below="@+id/passLogin"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:onClick="viewHome"
         android:text="@string/button_login" />
 
 </RelativeLayout>

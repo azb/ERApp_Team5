@@ -21,7 +21,7 @@ public class HomeActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		settings = getSharedPreferences(PREFS_NAME, 0);
-		if (!logCheck()) {
+		if (!settings.getBoolean("logged", false)) {
 			Intent intent = new Intent(this, LoginActivity.class);
 			startActivity(intent);
 			finish();
@@ -29,7 +29,7 @@ public class HomeActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.activity_home);
-		if(!adminCheck()) {
+		if(!settings.getBoolean("admin", false)) {
 			Button addEmployee = (Button) findViewById(R.id.button_addEmployee);
 			addEmployee.setVisibility(View.GONE);
 		}
@@ -55,15 +55,6 @@ public class HomeActivity extends Activity {
 		default:
 			return super.onOptionsItemSelected(item);
 		}
-	}
-	
-	private boolean logCheck() {
-		return (settings.getBoolean("logged", false));
-	}
-	
-	private boolean adminCheck() {
-		//return true for now
-		return (settings.getBoolean("admin", true));
 	}
 
 	public void addExpense(View view) {
