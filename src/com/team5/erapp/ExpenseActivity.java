@@ -66,6 +66,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private Button submit;
 	private SharedPreferences settings;
 	private String imagePath;
+	private String toast;
 
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
@@ -98,6 +99,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		submit = (Button) findViewById(R.id.button_submit);
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
+		toast = "Submitted";
 
 		currency.setSelection(settings.getInt("index", 7));
 		img.setBackgroundColor(Color.GRAY);
@@ -238,17 +240,20 @@ public class ExpenseActivity extends Activity implements OnListener {
 		description.setText(data.get("description").toString());
 		date.setText(data.get("date").toString());
 		comment.setText(data.get("comment").toString());
-		currency.setSelection((int) Double.parseDouble(data.get("currency").toString()));
-		category.setSelection((int) Double.parseDouble(data.get("category").toString()));
-		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
-	
+		currency.setSelection((int) Double.parseDouble(data.get("currency")
+				.toString()));
+		category.setSelection((int) Double.parseDouble(data.get("category")
+				.toString()));
+		payment.setSelection((int) Double.parseDouble(data.get("payment")
+				.toString()));
+
 		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
-	
+
 		if (data.get("display").equals("view")) {
 			setTitle("Expense");
 			TextView priceTitle = (TextView) findViewById(R.id.addExpense_price);
 			LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
-	
+
 			priceTitle.setPadding(0, 10, 0, 0);
 			layout.setVisibility(View.GONE);
 			price.setFocusable(false);
@@ -404,7 +409,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		editor.commit();
 
 		expense.put("ex", list);
-
 		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
@@ -413,6 +417,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 			@Override
 			public void onError(final IOException exception) {
 				handleEndpointException(exception);
+				toast = "Unable to connect to server";
 			}
 		};
 
@@ -421,7 +426,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		} else {
 			mProcessingFragment.getCloudBackend().insert(expense, handler);
 		}
-		
+
 		// return to previous activity
 		finish();
 		if (data.get("display").equals("correct")) {
@@ -434,15 +439,17 @@ public class ExpenseActivity extends Activity implements OnListener {
 		Handler toaster = new Handler();
 		Runnable run = new Runnable() {
 			@Override
-		    public void run() {
-				Toast.makeText(ExpenseActivity.this, "Submitted", Toast.LENGTH_SHORT).show();
-		    }
+			public void run() {
+				Toast.makeText(ExpenseActivity.this, toast, Toast.LENGTH_SHORT)
+						.show();
+			}
 		};
-		toaster.postDelayed(run, 400);
+		toaster.postDelayed(run, 500);
 	}
 
 	private void handleEndpointException(IOException e) {
-		Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+		Toast.makeText(this, "Unable to connect to server", Toast.LENGTH_LONG)
+				.show();
 	}
 
 	/**

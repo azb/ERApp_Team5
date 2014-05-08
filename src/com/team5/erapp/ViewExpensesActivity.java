@@ -411,8 +411,10 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					myOutWriter.append(strWrite);
 					myOutWriter.close();
 					fOut.close();
-					String path = myFile.getPath().substring(
-							myFile.getPath().indexOf("/sd"));
+					String path =  myFile.getPath();
+					if (path.contains("/storage/")) {
+						path = path.substring(path.indexOf("/storage/") + 8);
+					}
 					Toast.makeText(context, "Exported to folder " + path,
 							Toast.LENGTH_LONG).show();
 				} catch (Exception e) {
@@ -420,6 +422,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				}
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -447,7 +450,8 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	}
 
 	private void handleEndpointException(IOException e) {
-		Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show();
+//		Toast.makeText(this, "Unable to connect to server", Toast.LENGTH_LONG).show();
+		emptyView.setText("Unable to connect to server");
 	}
 
 	/**
