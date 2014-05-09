@@ -82,7 +82,7 @@ public class HomeActivity extends Activity {
 	}
 
 	public void addEmployee(View view) {
-		Intent intent = new Intent(this, AddEmployeeActivity.class);
+		Intent intent = new Intent(this, ApproveEmployeeActivity.class);
 		startActivity(intent);
 	}
 }

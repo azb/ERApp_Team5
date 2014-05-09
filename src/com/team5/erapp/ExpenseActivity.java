@@ -65,7 +65,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private LinearLayout img;
 	private Button submit;
 	private SharedPreferences settings;
-	private String imagePath;
 	private String toast;
 	private int length;
 	private boolean incomplete;
@@ -177,7 +176,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 				} else {
 					photoUri = data.getData();
 				}
-				imagePath = photoUri.getPath();
 				showPhoto(photoUri.getPath());
 			} else if (resultCode == RESULT_CANCELED) {
 			}
@@ -235,9 +233,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 			return;
 		}
 	
-		String acc = settings.getString("email", "");
+		String acc = settings.getString("emailFormatted", "");
 		if (settings.getBoolean("employee", false)) {
-			acc = settings.getString("company", "");
+			acc = "Co_" + settings.getString("company", "");
 		}
 		CloudEntity expense = new CloudEntity("ERApp_" + acc);
 		expense = addData(expense);
@@ -287,7 +285,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		expense.put("correctable", true);
 		if (data.get("display").equals("correct")) {
 			expense = data.getParcelable("expense");
-			expense.put("correctable", false);
 		}
 		List<Object> list = new ArrayList<Object>();
 		incomplete = false;
@@ -296,8 +293,8 @@ public class ExpenseActivity extends Activity implements OnListener {
 			list.add(-1);
 			expense.put("price", -1);
 		} else {
-			expense.put("price", Double.parseDouble(price.getText().toString()));
-			list.add(Double.parseDouble(price.getText().toString()));
+			expense.put("price", Double.parseDouble(price.getText().toString().replaceAll("[^\\d.]", "")));
+			list.add(Double.parseDouble(price.getText().toString().replaceAll("[^\\d.]", "")));
 		}
 		if (isEmpty(merchant)) {
 			incomplete = true;
@@ -331,9 +328,14 @@ public class ExpenseActivity extends Activity implements OnListener {
 		list.add(payment.getSelectedItemPosition());
 		list.add(category.getSelectedItem().toString());
 		list.add(category.getSelectedItemPosition());
-		expense.put("incomplete", incomplete);
 		expense.setCreatedBy(settings.getString("email", ""));
 		expense.put("ex", list);
+		expense.put("name", settings.getString("name", ""));
+		if (incomplete) {
+			expense.put("correctable", true);
+		} else if (data.get("display").equals("correct")) {
+			expense.put("correctable", false);
+		}
 	
 		// save currency
 		SharedPreferences.Editor editor = settings.edit();
@@ -367,14 +369,18 @@ public class ExpenseActivity extends Activity implements OnListener {
 		payment.setSelection((int) Double.parseDouble(data.get("payment")
 				.toString()));
 
-		CloudEntity ce = (CloudEntity) data.getParcelable("expense");
-
 		if (data.get("display").equals("view")) {
 			setTitle("Expense");
-			TextView priceTitle = (TextView) findViewById(R.id.row_date);
+			if (settings.getBoolean("employee", false)) {
+				TextView name = (TextView) findViewById(R.id.view_name);
+				name.setText(settings.getString("name", ""));
+				name.setVisibility(View.VISIBLE);
+				name.setPadding(0, 5, 0, 5);
+			} else {
+				TextView priceText = (TextView) findViewById(R.id.addExpense_price);
+				priceText.setPadding(0, 15, 0, 0);
+			}
 			LinearLayout layout = (LinearLayout) findViewById(R.id.addExpense_imageSelect);
-
-			priceTitle.setPadding(0, 15, 0, 0);
 			layout.setVisibility(View.GONE);
 			price.setFocusable(false);
 			merchant.setFocusable(false);

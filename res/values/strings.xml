@@ -18,7 +18,7 @@
     <string name="text_comment">Comment</string>
     <string name="title_activity_login">Log In</string>
     <string name="title_activity_signup">Sign Up</string>
-    <string name="title_activity_addEmployee">Add Employee</string>
+    <string name="title_activity_addEmployee">Approve Employee</string>
     <string name="title_activity_correctExpenses">Correct Expenses</string>
     <string name="title_activity_expense">Expense</string>
     <string name="text_email">Email</string>
@@ -26,7 +26,7 @@
     <string name="button_login">Log In</string>
     <string name="button_signup">Sign Up</string>
     <string name="button_correction">Correct Expenses</string>
-    <string name="button_addEmployee">Add Employee</string>
+    <string name="button_addEmployee">Approve Employee</string>
     <string name="button_view">View Expenses</string>
     <string name="text_verifyPass">Verify password</string>
     <string name="text_Merchant">Merchant</string>
@@ -46,6 +46,7 @@
     <string name="title_year">Select year</string>
     <string name="no_expenses">No expenses</string>
     <string name="company_signup">Company</string>
+    <string name="no_additions">No pending additions</string>
 
     <string-array name="entries_category">
         <item>Category</item>

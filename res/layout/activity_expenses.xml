@@ -58,7 +58,15 @@
 			</LinearLayout>
 
 			<TextView
-			    android:id="@+id/row_date"
+			    android:id="@+id/view_name"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_gravity="center"
+			    android:textSize="18sp"
+			    android:visibility="gone" />
+
+			<TextView
+			    android:id="@+id/addExpense_price"
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content"
 			    android:text="@string/text_price"

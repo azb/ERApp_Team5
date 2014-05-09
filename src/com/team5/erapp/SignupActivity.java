@@ -41,7 +41,8 @@ public class SignupActivity extends Activity implements OnListener {
 	private EditText company;
 	private Button create;
 	private boolean checked;
-	private List<CloudEntity> accounts;
+	private boolean approved;
+	private List<CloudEntity> accountsList;
 
 	private SharedPreferences settings;
 
@@ -138,25 +139,47 @@ public class SignupActivity extends Activity implements OnListener {
 	private void createAcc() {
 		CloudEntity account = new CloudEntity("ERAppAccounts");
 		account.put("name", name.getText().toString());
-		String e = email.getText().toString();
-		account.put("email", e);
-		account.put("pass", pass.getText().toString());
-
 		SharedPreferences.Editor editor = settings.edit();
-		editor.putString("email", e);
+		String email = this.email.getText().toString();
+		editor.putString("email", email);
+		for (int i = 0; i < accountsList.size(); i++) {
+			if (accountsList.get(i).get("email").toString()
+					.equalsIgnoreCase(email)) {
+				InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+				inputManager.hideSoftInputFromWindow(getCurrentFocus()
+						.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+				Toast.makeText(SignupActivity.this, "Email already in use",
+						Toast.LENGTH_SHORT).show();
+				return;
+			}
+		}
+		account.put("email", email);
+		account.put("pass", pass.getText().toString());
+		approved = true;
+		
+		int at = email.indexOf("@");
+		int dot = email.indexOf(".");
+		String eFormat = email.substring(0, at) + "_"
+				+ email.substring(at + 1, dot) + "_" + email.substring(dot + 1);
+		editor.putString("emailFormatted", eFormat);
 
 		if (checked && (company.getText().toString().trim().length() != 0)) {
 			account.put("company", company.getText().toString());
-			editor.putString("company", company.getText().toString());
-			editor.putBoolean("employee", true);
 			account.put("admin", true);
+			account.put("approved", true);
+			editor.putString("company", company.getText().toString());
+			editor.putString("name", name.getText().toString());
+			editor.putBoolean("employee", true);
 			editor.putBoolean("admin", true);
-			for (int i = 0; i < accounts.size(); i++) {
-				if (accounts.get(i).get("company") != null) {
-					if (accounts.get(i).get("company")
+			editor.putBoolean("approved", true);
+			for (int i = 0; i < accountsList.size(); i++) {
+				if (accountsList.get(i).get("company") != null) {
+					if (accountsList.get(i).get("company")
 							.equals(company.getText().toString())) {
 						account.put("admin", false);
 						editor.putBoolean("admin", false);
+						account.put("approved", false);
+						approved = false;
 					}
 				}
 			}
@@ -176,13 +199,6 @@ public class SignupActivity extends Activity implements OnListener {
 						.show();
 			}
 		};
-		for (int i = 0; i < accounts.size(); i++) {
-			if (accounts.get(i).get("email").toString().equalsIgnoreCase(e)) {
-				Toast.makeText(SignupActivity.this, "Email already in use",
-						Toast.LENGTH_SHORT).show();
-				return;
-			}
-		}
 		mProcessingFragment.getCloudBackend().insert(account, handler);
 		goHome();
 	}
@@ -191,7 +207,7 @@ public class SignupActivity extends Activity implements OnListener {
 		CloudCallbackHandler<List<CloudEntity>> handler = new CloudCallbackHandler<List<CloudEntity>>() {
 			@Override
 			public void onComplete(List<CloudEntity> results) {
-				accounts = results;
+				accountsList = results;
 			}
 
 			@Override
@@ -246,6 +262,15 @@ public class SignupActivity extends Activity implements OnListener {
 		editor.putBoolean("logged", true);
 		editor.commit();
 		Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
+		if (settings.getBoolean("employee", false) && !approved) {
+			intent = new Intent(this, LoginActivity.class);
+			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+			inputManager.hideSoftInputFromWindow(getCurrentFocus()
+					.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+			Toast.makeText(this,
+					"Please wait for approval from company administrator",
+					Toast.LENGTH_LONG).show();
+		}
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
 				| Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);

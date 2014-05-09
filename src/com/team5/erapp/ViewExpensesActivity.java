@@ -40,9 +40,10 @@ import com.google.cloud.backend.core.CloudBackendFragment;
 import com.google.cloud.backend.core.CloudBackendFragment.OnListener;
 import com.google.cloud.backend.core.CloudCallbackHandler;
 import com.google.cloud.backend.core.CloudEntity;
+import com.google.cloud.backend.core.CloudQuery;
+import com.google.cloud.backend.core.Filter;
 import com.google.cloud.backend.core.CloudQuery.Order;
 import com.google.cloud.backend.core.CloudQuery.Scope;
-import com.google.cloud.backend.core.Filter.Op;
 
 /**
  * Shows a list of expenses.
@@ -77,27 +78,26 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		this.getWindow().setSoftInputMode(
 				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-		settings = getSharedPreferences(PREFS_NAME, 0);
 		setContentView(R.layout.activity_display_expenses);
+		settings = getSharedPreferences(PREFS_NAME, 0);
 		initializeView();
 		emptyView = (TextView) findViewById(R.id.no_expenses);
 		emptyView.setText("Loading...");
 		emptyView.setVisibility(View.VISIBLE);
 		data = getIntent().getExtras();
 		if (data.get("display").equals("correct")) {
-			setTitle("Incomplete Expenses");
+			setTitle("Correct Expenses");
 			if (data.getBoolean("delay", false)) {
 				Handler handler = new Handler();
 				Runnable run = new Runnable() {
 					@Override
-				    public void run() {
+					public void run() {
 						mFragmentManager = getFragmentManager();
 						initiateFragments();
-				    }
+					}
 				};
 				handler.postDelayed(run, 500);
-			} 
-			else {
+			} else {
 				mFragmentManager = getFragmentManager();
 				initiateFragments();
 			}
@@ -269,18 +269,24 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				handleEndpointException(exception);
 			}
 		};
-		String acc = settings.getString("email", "");
+		String acc = settings.getString("emailFormatted", "");
 		if (settings.getBoolean("employee", false)) {
-			acc = settings.getString("company", "");
+			acc = "Co_" + settings.getString("company", "");
 		}
 		if (data.get("display").equals("view")) {
 			mProcessingFragment.getCloudBackend().listByKind("ERApp_" + acc,
 					settings.getString("sort", "_createdAt"), Order.DESC, 500,
 					Scope.PAST, handler);
 		} else if (data.get("display").equals("correct")) {
-			mProcessingFragment.getCloudBackend().listByProperty("ERApp_" + acc,
-					"incomplete", Op.EQ, true, Order.DESC, 500, Scope.PAST,
-					handler);
+			CloudQuery cq = new CloudQuery("ERApp_" + acc);
+			if (!settings.getBoolean("admin", false)) {
+				cq.setFilter(Filter.and(Filter.eq(CloudEntity.PROP_CREATED_BY,
+						settings.getString("email", "")), Filter.eq("correctable", true)));
+			} else {
+				cq.setFilter(Filter.eq("correctable", true));
+			}
+			cq.setScope(Scope.PAST);
+			mProcessingFragment.getCloudBackend().list(cq, handler);
 		}
 	}
 
@@ -418,7 +424,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					myOutWriter.append(strWrite);
 					myOutWriter.close();
 					fOut.close();
-					String path =  myFile.getPath();
+					String path = myFile.getPath();
 					if (path.contains("/storage/")) {
 						path = path.substring(path.indexOf("/storage/") + 8);
 					}
@@ -457,7 +463,6 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	}
 
 	private void handleEndpointException(IOException e) {
-//		Toast.makeText(this, "Unable to connect to server", Toast.LENGTH_LONG).show();
 		emptyView.setText("Unable to connect to server");
 	}
 

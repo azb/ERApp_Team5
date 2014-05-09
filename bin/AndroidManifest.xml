@@ -90,7 +90,7 @@
         </activity>
         <activity
             android:label="@string/title_activity_addEmployee"
-            android:name="AddEmployeeActivity"
+            android:name="ApproveEmployeeActivity"
             android:parentActivityName="com.team5.erapp.HomeActivity"
             android:windowSoftInputMode="stateHidden" >
             <meta-data

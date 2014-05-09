@@ -33,6 +33,7 @@ public class LoginActivity extends Activity implements OnListener {
 	private EditText inputPassword;
 	private List<CloudEntity> accounts;
 	private String company;
+	private Boolean approved;
 
 	private SharedPreferences settings;
 
@@ -47,14 +48,12 @@ public class LoginActivity extends Activity implements OnListener {
 		super.onCreate(savedInstanceState);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.activity_login);
-
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 		company = "";
 		
 		SharedPreferences.Editor editor = settings.edit();
 		editor.clear();
-		editor.putBoolean("logged", true);
 		editor.commit();
 		
 		inputEmail = (EditText) findViewById(R.id.emailLogin);
@@ -80,10 +79,22 @@ public class LoginActivity extends Activity implements OnListener {
 		initiateFragments();
 	}
 
+	@Override
+	public void onCreateFinished() {
+//		getAccounts();
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		getAccounts();
+	}
+
 	private void login() {
 		String e = inputEmail.getText().toString();
 		String pass = inputPassword.getText().toString();
 		Boolean exists = false;
+		approved = true;
 		for (int i = 0; i < accounts.size(); i++) {
 			if (accounts.get(i).get("email").toString().equalsIgnoreCase(e)) {
 				if (accounts.get(i).get("pass").toString().equals(pass)) {
@@ -92,7 +103,11 @@ public class LoginActivity extends Activity implements OnListener {
 						company = accounts.get(i).get("company").toString();
 						SharedPreferences.Editor editor = settings.edit();
 						editor.putBoolean("employee", true);
-						if(accounts.get(i).get("admin").equals(true)) {
+						editor.putString("name", accounts.get(i).get("name").toString());
+						if (accounts.get(i).get("approved").equals(false)) {
+							approved = false;
+						}
+						if (accounts.get(i).get("admin").equals(true)) {
 							editor.putBoolean("admin", true);
 						}
 						editor.commit();
@@ -109,11 +124,6 @@ public class LoginActivity extends Activity implements OnListener {
 			inputManager.hideSoftInputFromWindow(getCurrentFocus()
 					.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 		}
-	}
-
-	@Override
-	public void onCreateFinished() {
-		getAccounts();
 	}
 
 	private void initiateFragments() {
@@ -154,14 +164,25 @@ public class LoginActivity extends Activity implements OnListener {
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putBoolean("logged", true);
 		String email = inputEmail.getText().toString();
+		editor.putString("email", email);
 		int at = email.indexOf("@");
 		int dot = email.indexOf(".");
 		email = email.substring(0, at) + "_" + email.substring(at + 1, dot)
 				+ "_" + email.substring(dot + 1);
-		editor.putString("email", email);
+		editor.putString("emailFormatted", email);
 		editor.putString("company", company);
-		editor.commit();
 		Intent intent = new Intent(this, HomeActivity.class);
+		if(!approved) {
+			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+			inputManager.hideSoftInputFromWindow(getCurrentFocus()
+					.getWindowToken(),
+					InputMethodManager.HIDE_NOT_ALWAYS);
+			Toast.makeText(this, "Please wait for approval from company administrator", Toast.LENGTH_LONG).show();
+			editor.putBoolean("logged", false);
+			editor.commit();
+			return;
+		}
+		editor.commit();
 		startActivity(intent);
 		finish();
 	}
