@@ -30,25 +30,21 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 	 * @param textViewResourceId
 	 * @param objects
 	 */
-	public ExpensesListAdapter(Context context, int textViewResourceId,
-			List<CloudEntity> objects) {
+	public ExpensesListAdapter(Context context, int textViewResourceId, List<CloudEntity> objects) {
 		super(context, textViewResourceId, objects);
-		mInflater = (LayoutInflater) context
-				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		View view = convertView != null ? convertView : mInflater.inflate(
-				R.layout.row_expense, parent, false);
+		View view = convertView != null ? convertView : mInflater.inflate(R.layout.row_expense, parent, false);
 
 		CloudEntity ce = getItem(position);
 		@SuppressWarnings("unchecked")
 		List<Object> a = (List<Object>) ce.get("ex");
 		if (ce != null) {
 			TextView price = (TextView) view.findViewById(R.id.row_price);
-			TextView description = (TextView) view
-					.findViewById(R.id.row_description);
+			TextView description = (TextView) view.findViewById(R.id.row_description);
 			TextView date = (TextView) view.findViewById(R.id.row_date);
 			double amount = Double.parseDouble(a.get(0).toString());
 			amount = Math.round(amount);
@@ -61,7 +57,7 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 				description.setText(a.get(2).toString());
 			} else {
 				description.setText("No description");
-			}			
+			}
 			date.setText(ce.getUpdatedAt().toString().substring(4, 10));
 		}
 		return view;
@@ -70,19 +66,5 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 	@Override
 	public View getDropDownView(int position, View convertView, ViewGroup parent) {
 		return this.getView(position, convertView, parent);
-	}
-
-	/**
-	 * Gets the author field of the CloudEntity.
-	 * 
-	 * @param post the CloudEntity
-	 * @return author string
-	 */
-	private String getAuthor(CloudEntity post) {
-		if (post.getCreatedBy() != null) {
-			return post.getCreatedBy().replaceFirst("@.*", "");
-		} else {
-			return "<anonymous>";
-		}
 	}
 }

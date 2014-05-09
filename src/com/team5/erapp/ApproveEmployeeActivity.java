@@ -14,8 +14,11 @@ import com.google.cloud.backend.core.CloudEntity;
 import com.team5.erapp.R;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -34,8 +37,9 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
 	private TextView emptyView;
+	private CloudEntity ce;
+	
 	public static final String PREFS_NAME = "MyPrefsFile";
-
 	private SharedPreferences settings;
 
 	/**
@@ -62,28 +66,37 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 
 	private void initializeView() {
 		mEmployeesView = (ListView) findViewById(R.id.employees_list);
-		mEmployeesView
-				.setOnItemClickListener(new ListView.OnItemClickListener() {
+		mEmployeesView.setOnItemClickListener(new ListView.OnItemClickListener() {
 
-					@Override
-					public void onItemClick(AdapterView<?> parent, View view,
-							int position, long id) {
-						CloudEntity ce = (CloudEntity) mEmployeesView
-								.getItemAtPosition(position);
-						ce.put("approved", true);
-						CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
-							@Override
-							public void onComplete(final CloudEntity result) {
-							}
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				ce = (CloudEntity) mEmployeesView.getItemAtPosition(position);
+				new AlertDialog.Builder(ApproveEmployeeActivity.this).setMessage("Approve user?")
+						.setNegativeButton(android.R.string.no, null)
+						.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
-							@Override
-							public void onError(final IOException exception) {
+							public void onClick(DialogInterface arg0, int arg1) {
+								ce.put("approved", true);
+								CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
+									@Override
+									public void onComplete(final CloudEntity result) {
+										Intent i = getIntent();
+										finish();
+										overridePendingTransition(0, 0);
+										startActivity(i);
+									}
+
+									@Override
+									public void onError(final IOException exception) {
+									}
+								};
+								mProcessingFragment.getCloudBackend().update(ce,
+										handler);
 							}
-						};
-						mProcessingFragment.getCloudBackend().update(ce,
-								handler);
-					}
-				});
+						}).create().show();
+				return;
+			}
+		});
 	}
 
 	private void listEmployees() {
@@ -103,8 +116,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 			}
 		};
 		CloudQuery cq = new CloudQuery("ERAppAccounts");
-		cq.setFilter(Filter.and(Filter.eq("approved", false),
-				Filter.eq("company", settings.getString("company", ""))));
+		cq.setFilter(Filter.and(Filter.eq("approved", false), Filter.eq("company", settings.getString("company", ""))));
 		cq.setScope(Scope.PAST);
 		mProcessingFragment.getCloudBackend().list(cq, handler);
 	}
@@ -112,8 +124,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 	private void updateEmployeesView() {
 		if (!mEmployees.isEmpty()) {
 			emptyView.setVisibility(View.GONE);
-			mEmployeesView.setAdapter(new EmployeesListAdapter(this,
-					android.R.layout.simple_list_item_1, mEmployees));
+			mEmployeesView.setAdapter(new EmployeesListAdapter(this, android.R.layout.simple_list_item_1, mEmployees));
 		} else {
 			emptyView.setText("No pending approvals");
 			emptyView.setVisibility(View.VISIBLE);
@@ -121,19 +132,16 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 	}
 
 	private void initiateFragments() {
-		FragmentTransaction fragmentTransaction = mFragmentManager
-				.beginTransaction();
+		FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
 
 		// Check to see if we have retained the fragment which handles
 		// asynchronous backend calls
-		mProcessingFragment = (CloudBackendFragment) mFragmentManager
-				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
+		mProcessingFragment = (CloudBackendFragment) mFragmentManager.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
 		// If not retained (or first time running), create a new one
 		if (mProcessingFragment == null) {
 			mProcessingFragment = new CloudBackendFragment();
 			mProcessingFragment.setRetainInstance(true);
-			fragmentTransaction.add(mProcessingFragment,
-					PROCESSING_FRAGMENT_TAG);
+			fragmentTransaction.add(mProcessingFragment, PROCESSING_FRAGMENT_TAG);
 		}
 		fragmentTransaction.commit();
 	}

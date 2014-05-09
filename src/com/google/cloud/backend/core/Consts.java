@@ -20,51 +20,50 @@ package com.google.cloud.backend.core;
  */
 public interface Consts {
 
-    /**
-     * Set Project ID of your Google APIs Console Project.
-     */
-    public static final String PROJECT_ID = "neural-sunup-549";
+	/**
+	 * Set Project ID of your Google APIs Console Project.
+	 */
+	public static final String PROJECT_ID = "neural-sunup-549";
 
-    /**
-     * Set Project Number of your Google APIs Console Project.
-     */
-    public static final String PROJECT_NUMBER = "721342795059";
+	/**
+	 * Set Project Number of your Google APIs Console Project.
+	 */
+	public static final String PROJECT_NUMBER = "721342795059";
 
-    /**
-     * Set your Web Client ID for authentication at backend.
-     */
-    public static final String WEB_CLIENT_ID = "721342795059.apps.googleusercontent.com";
+	/**
+	 * Set your Web Client ID for authentication at backend.
+	 */
+	public static final String WEB_CLIENT_ID = "721342795059.apps.googleusercontent.com";
 
-    /**
-     * Set default user authentication enabled or disabled.
-     */
-    public static final boolean IS_AUTH_ENABLED = false;
+	/**
+	 * Set default user authentication enabled or disabled.
+	 */
+	public static final boolean IS_AUTH_ENABLED = false;
 
-    /**
-     * Auth audience for authentication on backend.
-     */
-    public static final String AUTH_AUDIENCE = "server:client_id:" + WEB_CLIENT_ID;
+	/**
+	 * Auth audience for authentication on backend.
+	 */
+	public static final String AUTH_AUDIENCE = "server:client_id:" + WEB_CLIENT_ID;
 
-    /**
-     * Endpoint root URL
-     */
-    public static final String ENDPOINT_ROOT_URL = "https://" + PROJECT_ID
-            + ".appspot.com/_ah/api/";
+	/**
+	 * Endpoint root URL
+	 */
+	public static final String ENDPOINT_ROOT_URL = "https://" + PROJECT_ID + ".appspot.com/_ah/api/";
 
-    /**
-     * A flag to switch if the app should be run with local dev server or
-     * production (cloud).
-     */
-    public static final boolean LOCAL_ANDROID_RUN = false;
+	/**
+	 * A flag to switch if the app should be run with local dev server or
+	 * production (cloud).
+	 */
+	public static final boolean LOCAL_ANDROID_RUN = false;
 
-    /**
-     * SharedPreferences keys for CloudBackend.
-     */
-    public static final String PREF_KEY_CLOUD_BACKEND = "PREF_KEY_CLOUD_BACKEND";
-    public static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
+	/**
+	 * SharedPreferences keys for CloudBackend.
+	 */
+	public static final String PREF_KEY_CLOUD_BACKEND = "PREF_KEY_CLOUD_BACKEND";
+	public static final String PREF_KEY_ACCOUNT_NAME = "PREF_KEY_ACCOUNT_NAME";
 
-    /**
-     * Tag name for logging.
-     */
-    public static final String TAG = "CloudBackend";
+	/**
+	 * Tag name for logging.
+	 */
+	public static final String TAG = "CloudBackend";
 }

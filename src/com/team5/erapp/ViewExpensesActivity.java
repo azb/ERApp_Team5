@@ -25,12 +25,14 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,8 +52,6 @@ import com.google.cloud.backend.core.CloudQuery.Scope;
  */
 public class ViewExpensesActivity extends Activity implements OnListener {
 
-	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
-
 	/*
 	 * UI components
 	 */
@@ -60,8 +60,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
 	private TextView emptyView;
-	public static final String PREFS_NAME = "MyPrefsFile";
 
+	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
+	public static final String PREFS_NAME = "MyPrefsFile";
 	private SharedPreferences settings;
 
 	/**
@@ -76,8 +77,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		this.getWindow().setSoftInputMode(
-				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		setContentView(R.layout.activity_display_expenses);
 		settings = getSharedPreferences(PREFS_NAME, 0);
 		initializeView();
@@ -150,50 +150,61 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			return true;
 		case R.id.action_export:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			final CharSequence[] items = { "Month", "Current year",
-					"Previous year", "All" };
-			builder.setTitle(R.string.title_export).setItems(items,
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							// The 'which' argument contains the index position
-							// of the selected item
-							String type = items[which].toString();
-							if (type.equals("Month")) {
-								final CharSequence[] itemsMonth = { "January",
-										"February", "March", "April", "May",
-										"June", "July", "August", "September",
-										"October", "November", "December" };
-								AlertDialog.Builder builder2 = new AlertDialog.Builder(
-										ViewExpensesActivity.this);
-								builder2.setTitle(R.string.title_month)
-										.setItems(
-												itemsMonth,
-												new DialogInterface.OnClickListener() {
-													public void onClick(
-															DialogInterface dialong,
-															int which) {
-														String range = itemsMonth[which]
-																.toString();
-														createCSV(range,
-																"month");
-													}
-												});
-								builder2.create().show();
-							} else if (type.equals("Current year")) {
-								int year = Calendar.getInstance().get(
-										Calendar.YEAR);
-								String range = Integer.toString(year);
-								createCSV(range, "year");
-							} else if (type.equals("Previous year")) {
-								int year = Calendar.getInstance().get(
-										Calendar.YEAR);
-								String range = Integer.toString(year - 1);
-								createCSV(range, "year");
-							} else {
-								createCSV("", "all");
+			final CharSequence[] items = { "Month", "Current year", "Previous year", "All" };
+			final CharSequence[] items2 = { "Month", "Current year", "Previous year", "All", "Employee" };
+			DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					String type = "";
+					if (settings.getBoolean("admin", false)) {
+						type = items2[which].toString();
+					} else {
+						type = items[which].toString();
+					}
+					if (type.equals("Month")) {
+						final CharSequence[] itemsMonth = { "January", "February", "March", "April", "May", "June", "July",
+								"August", "September", "October", "November", "December" };
+						AlertDialog.Builder builder2 = new AlertDialog.Builder(ViewExpensesActivity.this);
+						builder2.setTitle(R.string.title_month).setItems(itemsMonth, new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialong, int which) {
+								createCSV(itemsMonth[which].toString(), "month");
 							}
-						}
-					});
+						});
+						builder2.create().show();
+					} else if (type.equals("Current year")) {
+						int year = Calendar.getInstance().get(Calendar.YEAR);
+						createCSV(Integer.toString(year), "year");
+					} else if (type.equals("Previous year")) {
+						int year = Calendar.getInstance().get(Calendar.YEAR);
+						createCSV(Integer.toString(year - 1), "year");
+					} else if (type.equals("Employee")) {
+						AlertDialog.Builder builder3 = new AlertDialog.Builder(ViewExpensesActivity.this);
+						builder3.setMessage("Enter employee's email:");
+
+						// Set an EditText view to get user input
+						final EditText input = new EditText(ViewExpensesActivity.this);
+						input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+						builder3.setView(input);
+						builder3.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int whichButton) {
+								createCSV(input.getText().toString(), "employee");
+							}
+						});
+						builder3.setNegativeButton("Cancel", null);
+						builder3.show();
+					} else {
+						createCSV("", "all");
+					}
+				}
+
+			};
+
+			if (settings.getBoolean("admin", false)) {
+				builder.setTitle(R.string.title_export).setItems(items2, clickListener);
+			} else {
+				builder.setTitle(R.string.title_export).setItems(items, clickListener);
+			}
 			builder.create().show();
 			return true;
 		default:
@@ -202,54 +213,47 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	}
 
 	private void initiateFragments() {
-		FragmentTransaction fragmentTransaction = mFragmentManager
-				.beginTransaction();
+		FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
 
 		// Check to see if we have retained the fragment which handles
 		// asynchronous backend calls
-		mProcessingFragment = (CloudBackendFragment) mFragmentManager
-				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
+		mProcessingFragment = (CloudBackendFragment) mFragmentManager.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
 		// If not retained (or first time running), create a new one
 		if (mProcessingFragment == null) {
 			mProcessingFragment = new CloudBackendFragment();
 			mProcessingFragment.setRetainInstance(true);
-			fragmentTransaction.add(mProcessingFragment,
-					PROCESSING_FRAGMENT_TAG);
+			fragmentTransaction.add(mProcessingFragment, PROCESSING_FRAGMENT_TAG);
 		}
 		fragmentTransaction.commit();
 	}
 
 	private void initializeView() {
 		mExpensesView = (ListView) findViewById(R.id.posts_list);
-		mExpensesView
-				.setOnItemClickListener(new ListView.OnItemClickListener() {
+		mExpensesView.setOnItemClickListener(new ListView.OnItemClickListener() {
 
-					@Override
-					public void onItemClick(AdapterView<?> parent, View view,
-							int position, long id) {
-						CloudEntity ce = (CloudEntity) mExpensesView
-								.getItemAtPosition(position);
-						Intent i = new Intent(getBaseContext(),
-								ExpenseActivity.class);
-						if (data.get("display").equals("view")) {
-							i.putExtra("display", "view");
-						} else if (data.get("display").equals("correct")) {
-							i.putExtra("display", "correct");
-						}
-						@SuppressWarnings("unchecked")
-						List<Object> ab = (ArrayList<Object>) ce.get("ex");
-						i.putExtra("expense", ce);
-						i.putExtra("price", ab.get(0).toString());
-						i.putExtra("merchant", ab.get(1).toString());
-						i.putExtra("description", ab.get(2).toString());
-						i.putExtra("date", ab.get(3).toString());
-						i.putExtra("comment", ab.get(4).toString());
-						i.putExtra("currency", ab.get(6).toString());
-						i.putExtra("category", ab.get(10).toString());
-						i.putExtra("payment", ab.get(8).toString());
-						startActivity(i);
-					}
-				});
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				CloudEntity ce = (CloudEntity) mExpensesView.getItemAtPosition(position);
+				Intent i = new Intent(getBaseContext(), ExpenseActivity.class);
+				if (data.get("display").equals("view")) {
+					i.putExtra("display", "view");
+				} else if (data.get("display").equals("correct")) {
+					i.putExtra("display", "correct");
+				}
+				@SuppressWarnings("unchecked")
+				List<Object> ab = (ArrayList<Object>) ce.get("ex");
+				i.putExtra("expense", ce);
+				i.putExtra("price", ab.get(0).toString());
+				i.putExtra("merchant", ab.get(1).toString());
+				i.putExtra("description", ab.get(2).toString());
+				i.putExtra("date", ab.get(3).toString());
+				i.putExtra("comment", ab.get(4).toString());
+				i.putExtra("currency", ab.get(6).toString());
+				i.putExtra("category", ab.get(10).toString());
+				i.putExtra("payment", ab.get(8).toString());
+				startActivity(i);
+			}
+		});
 	}
 
 	/**
@@ -274,14 +278,13 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			acc = "Co_" + settings.getString("company", "");
 		}
 		if (data.get("display").equals("view")) {
-			mProcessingFragment.getCloudBackend().listByKind("ERApp_" + acc,
-					settings.getString("sort", "_createdAt"), Order.DESC, 500,
-					Scope.PAST, handler);
+			mProcessingFragment.getCloudBackend().listByKind("ERApp_" + acc, settings.getString("sort", "_createdAt"),
+					Order.DESC, 500, Scope.PAST, handler);
 		} else if (data.get("display").equals("correct")) {
 			CloudQuery cq = new CloudQuery("ERApp_" + acc);
 			if (!settings.getBoolean("admin", false)) {
-				cq.setFilter(Filter.and(Filter.eq(CloudEntity.PROP_CREATED_BY,
-						settings.getString("email", "")), Filter.eq("correctable", true)));
+				cq.setFilter(Filter.and(Filter.eq(CloudEntity.PROP_CREATED_BY, settings.getString("email", "")),
+						Filter.eq("correctable", true)));
 			} else {
 				cq.setFilter(Filter.eq("correctable", true));
 			}
@@ -293,10 +296,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	private void updateExpenseView() {
 		if (!mExpenses.isEmpty()) {
 			emptyView.setVisibility(View.GONE);
-			mExpensesView.setAdapter(new ExpensesListAdapter(this,
-					android.R.layout.simple_list_item_1, mExpenses));
+			mExpensesView.setAdapter(new ExpensesListAdapter(this, android.R.layout.simple_list_item_1, mExpenses));
 		} else if (data.get("display").equals("correct")) {
-			emptyView.setText("No incomplete expenses");
+			emptyView.setText("No correctable expenses");
 			emptyView.setVisibility(View.VISIBLE);
 		} else {
 			emptyView.setText("No expenses");
@@ -322,11 +324,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		int hh = c.get(Calendar.HOUR);
 		int ii = c.get(Calendar.MINUTE);
 		int ss = c.get(Calendar.SECOND);
-		String curTime = String.format(Locale.getDefault(), "%02d-%02d-%02d",
-				hh, ii, ss);
-		String date = new StringBuilder().append(yy).append("-").append(dd)
-				.append("-").append(mm + 1).append("_").append(curTime)
-				.toString();
+		String curTime = String.format(Locale.getDefault(), "%02d-%02d-%02d", hh, ii, ss);
+		String date = new StringBuilder().append(yy).append("-").append(mm + 1).append("-").append(dd).append("_")
+				.append(curTime).toString();
 		writeFileOnSDCard(str1, getBaseContext(), "ERApp" + "_" + date + ".csv");
 	}
 
@@ -344,21 +344,31 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	@SuppressWarnings("unchecked")
 	private String setRange(String str1, String range, String type) {
 		List<Object> a = new ArrayList<Object>();
-		for (int i = 0; i < mExpenses.size(); i++) {
-			a = (ArrayList<Object>) mExpenses.get(i).get("ex");
+		for (CloudEntity ce : mExpenses) {
+			a = (ArrayList<Object>) ce.get("ex");
 			String date = a.get(3).toString();
 			if (type.equals("all")) {
-				str1 = appendEx(str1, a);
-			} else if (type.equals("year")) {
-				if (date.substring(date.length() - 4, date.length()).equals(
-						range)) {
+				if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
+					if (ce.getCreatedBy().toString().equals(settings.getString("email", ""))) {
+						str1 = appendEx(str1, a);
+					}
+				} else {
 					str1 = appendEx(str1, a);
+				}
+			} else if (type.equals("year")) {
+				if (date.substring(date.length() - 4, date.length()).equals(range)) {
+					if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
+						if (ce.getCreatedBy().toString().equals(settings.getString("email", ""))) {
+							str1 = appendEx(str1, a);
+						}
+					} else {
+						str1 = appendEx(str1, a);
+					}
 				}
 			} else if (type.equals("month")) {
 				String month = "";
 				try {
-					Date d = new SimpleDateFormat("MMM", Locale.ENGLISH)
-							.parse(range);
+					Date d = new SimpleDateFormat("MMM", Locale.ENGLISH).parse(range);
 					Calendar cal = Calendar.getInstance();
 					cal.setTime(d);
 					int m = cal.get(Calendar.MONTH) + 1;
@@ -366,8 +376,17 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
-				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == Integer
-						.parseInt(month)) {
+				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == Integer.parseInt(month)) {
+					if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
+						if (ce.getCreatedBy().toString().equals(settings.getString("email", ""))) {
+							str1 = appendEx(str1, a);
+						}
+					} else {
+						str1 = appendEx(str1, a);
+					}
+				}
+			} else if (type.equals("employee")) {
+				if (ce.getCreatedBy().toString().equalsIgnoreCase(range)) {
 					str1 = appendEx(str1, a);
 				}
 			}
@@ -397,30 +416,23 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		return str1;
 	}
 
-	private static void writeFileOnSDCard(String strWrite, Context context,
-			String fileName) {
+	private static void writeFileOnSDCard(String strWrite, Context context, String fileName) {
 
 		try {
 			if (isSdReadable()) {
-				File myFile = new File(
-						Environment.getExternalStorageDirectory() + "/ERApp");
+				File myFile = new File(Environment.getExternalStorageDirectory() + "/ERApp");
 				if (!myFile.exists()) {
-					File erappDirectory = new File(Environment
-							.getExternalStorageDirectory().getPath()
-							+ "/ERApp/");
+					File erappDirectory = new File(Environment.getExternalStorageDirectory().getPath() + "/ERApp/");
 					erappDirectory.mkdirs();
 				}
 
-				File file = new File(new File(Environment
-						.getExternalStorageDirectory().getPath() + "/ERApp/"),
-						fileName);
+				File file = new File(new File(Environment.getExternalStorageDirectory().getPath() + "/ERApp/"), fileName);
 				if (file.exists()) {
 					file.delete();
 				}
 				try {
 					FileOutputStream fOut = new FileOutputStream(file);
-					OutputStreamWriter myOutWriter = new OutputStreamWriter(
-							fOut);
+					OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
 					myOutWriter.append(strWrite);
 					myOutWriter.close();
 					fOut.close();
@@ -428,8 +440,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					if (path.contains("/storage/")) {
 						path = path.substring(path.indexOf("/storage/") + 8);
 					}
-					Toast.makeText(context, "Exported to folder " + path,
-							Toast.LENGTH_LONG).show();
+					Toast.makeText(context, "Exported to folder " + path, Toast.LENGTH_LONG).show();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

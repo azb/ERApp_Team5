@@ -70,8 +70,7 @@ public class SignupActivity extends Activity implements OnListener {
 		checkCorp.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
 			@Override
-			public void onCheckedChanged(CompoundButton buttonView,
-					boolean isChecked) {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 				if (isChecked) {
 					checked = true;
 					company.setVisibility(View.VISIBLE);
@@ -88,38 +87,21 @@ public class SignupActivity extends Activity implements OnListener {
 			@Override
 			public void onClick(View v) {
 				InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-				if (isEmpty(name) || isEmpty(email) || isEmpty(pass)
-						|| isEmpty(verify)) {
-					Toast.makeText(SignupActivity.this,
-							"One or more fields are empty", Toast.LENGTH_SHORT)
-							.show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus()
-							.getWindowToken(),
-							InputMethodManager.HIDE_NOT_ALWAYS);
+				if (isEmpty(name) || isEmpty(email) || isEmpty(pass) || isEmpty(verify)) {
+					Toast.makeText(SignupActivity.this, "One or more fields are empty", Toast.LENGTH_SHORT).show();
+					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
 				} else if (!isEmailValid(email.getText().toString())) {
-					Toast.makeText(SignupActivity.this, "Invalid email",
-							Toast.LENGTH_SHORT).show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus()
-							.getWindowToken(),
-							InputMethodManager.HIDE_NOT_ALWAYS);
+					Toast.makeText(SignupActivity.this, "Invalid email", Toast.LENGTH_SHORT).show();
+					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
-				} else if (!pass.getText().toString()
-						.equals(verify.getText().toString())) {
-					Toast.makeText(SignupActivity.this,
-							"Passwords do not match", Toast.LENGTH_SHORT)
-							.show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus()
-							.getWindowToken(),
-							InputMethodManager.HIDE_NOT_ALWAYS);
+				} else if (!pass.getText().toString().equals(verify.getText().toString())) {
+					Toast.makeText(SignupActivity.this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
 				} else if (pass.getText().toString().length() < 6) {
-					Toast.makeText(SignupActivity.this,
-							"Password must be at least 6 characters",
-							Toast.LENGTH_SHORT).show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus()
-							.getWindowToken(),
-							InputMethodManager.HIDE_NOT_ALWAYS);
+					Toast.makeText(SignupActivity.this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
 				}
 				createAcc();
@@ -142,25 +124,21 @@ public class SignupActivity extends Activity implements OnListener {
 		SharedPreferences.Editor editor = settings.edit();
 		String email = this.email.getText().toString();
 		editor.putString("email", email);
-		for (int i = 0; i < accountsList.size(); i++) {
-			if (accountsList.get(i).get("email").toString()
-					.equalsIgnoreCase(email)) {
+		for (CloudEntity ce : accountsList) {
+			if (ce.get("email").toString().equalsIgnoreCase(email)) {
 				InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-				inputManager.hideSoftInputFromWindow(getCurrentFocus()
-						.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-				Toast.makeText(SignupActivity.this, "Email already in use",
-						Toast.LENGTH_SHORT).show();
+				inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+				Toast.makeText(SignupActivity.this, "Email already in use", Toast.LENGTH_SHORT).show();
 				return;
 			}
 		}
 		account.put("email", email);
 		account.put("pass", pass.getText().toString());
 		approved = true;
-		
+
 		int at = email.indexOf("@");
 		int dot = email.indexOf(".");
-		String eFormat = email.substring(0, at) + "_"
-				+ email.substring(at + 1, dot) + "_" + email.substring(dot + 1);
+		String eFormat = email.substring(0, at) + "_" + email.substring(at + 1, dot) + "_" + email.substring(dot + 1);
 		editor.putString("emailFormatted", eFormat);
 
 		if (checked && (company.getText().toString().trim().length() != 0)) {
@@ -172,14 +150,14 @@ public class SignupActivity extends Activity implements OnListener {
 			editor.putBoolean("employee", true);
 			editor.putBoolean("admin", true);
 			editor.putBoolean("approved", true);
-			for (int i = 0; i < accountsList.size(); i++) {
-				if (accountsList.get(i).get("company") != null) {
-					if (accountsList.get(i).get("company")
-							.equals(company.getText().toString())) {
+			for (CloudEntity ce : accountsList) {
+				if (ce.get("company") != null) {
+					if (ce.get("company").equals(company.getText().toString())) {
 						account.put("admin", false);
 						editor.putBoolean("admin", false);
 						account.put("approved", false);
 						approved = false;
+						break;
 					}
 				}
 			}
@@ -194,9 +172,7 @@ public class SignupActivity extends Activity implements OnListener {
 
 			@Override
 			public void onError(final IOException exception) {
-				Toast.makeText(SignupActivity.this,
-						"Unable to connect to server", Toast.LENGTH_SHORT)
-						.show();
+				Toast.makeText(SignupActivity.this, "Unable to connect to server", Toast.LENGTH_SHORT).show();
 			}
 		};
 		mProcessingFragment.getCloudBackend().insert(account, handler);
@@ -214,21 +190,17 @@ public class SignupActivity extends Activity implements OnListener {
 			public void onError(IOException exception) {
 			}
 		};
-		mProcessingFragment.getCloudBackend().listByKind("ERAppAccounts",
-				CloudEntity.PROP_CREATED_AT, Order.DESC, 10000, Scope.PAST,
-				handler);
+		mProcessingFragment.getCloudBackend().listByKind("ERAppAccounts", CloudEntity.PROP_CREATED_AT, Order.DESC, 10000,
+				Scope.PAST, handler);
 	}
 
 	private void initiateFragments() {
-		FragmentTransaction fragmentTransaction = mFragmentManager
-				.beginTransaction();
-		mProcessingFragment = (CloudBackendFragment) mFragmentManager
-				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
+		FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+		mProcessingFragment = (CloudBackendFragment) mFragmentManager.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
 		if (mProcessingFragment == null) {
 			mProcessingFragment = new CloudBackendFragment();
 			mProcessingFragment.setRetainInstance(true);
-			fragmentTransaction.add(mProcessingFragment,
-					PROCESSING_FRAGMENT_TAG);
+			fragmentTransaction.add(mProcessingFragment, PROCESSING_FRAGMENT_TAG);
 		}
 		fragmentTransaction.commit();
 	}
@@ -265,14 +237,10 @@ public class SignupActivity extends Activity implements OnListener {
 		if (settings.getBoolean("employee", false) && !approved) {
 			intent = new Intent(this, LoginActivity.class);
 			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-			inputManager.hideSoftInputFromWindow(getCurrentFocus()
-					.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-			Toast.makeText(this,
-					"Please wait for approval from company administrator",
-					Toast.LENGTH_LONG).show();
+			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+			Toast.makeText(this, "Please wait for approval from company administrator", Toast.LENGTH_LONG).show();
 		}
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
-				| Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(intent);
 	}
 

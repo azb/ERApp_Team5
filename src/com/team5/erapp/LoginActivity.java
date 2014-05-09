@@ -51,11 +51,11 @@ public class LoginActivity extends Activity implements OnListener {
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 		company = "";
-		
+
 		SharedPreferences.Editor editor = settings.edit();
 		editor.clear();
 		editor.commit();
-		
+
 		inputEmail = (EditText) findViewById(R.id.emailLogin);
 		inputPassword = (EditText) findViewById(R.id.passLogin);
 		btnLogin = (Button) findViewById(R.id.buttonLogin);
@@ -65,12 +65,8 @@ public class LoginActivity extends Activity implements OnListener {
 			public void onClick(View v) {
 				InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 				if (isEmpty(inputEmail) || isEmpty(inputPassword)) {
-					Toast.makeText(LoginActivity.this,
-							"Please input email and password",
-							Toast.LENGTH_SHORT).show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus()
-							.getWindowToken(),
-							InputMethodManager.HIDE_NOT_ALWAYS);
+					Toast.makeText(LoginActivity.this, "Please input email and password", Toast.LENGTH_SHORT).show();
+					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
 				}
 				login();
@@ -80,14 +76,20 @@ public class LoginActivity extends Activity implements OnListener {
 	}
 
 	@Override
-	public void onCreateFinished() {
-//		getAccounts();
-	}
-	
-	@Override
 	public void onResume() {
 		super.onResume();
 		getAccounts();
+	}
+
+	private void initiateFragments() {
+		FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+		mProcessingFragment = (CloudBackendFragment) mFragmentManager.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
+		if (mProcessingFragment == null) {
+			mProcessingFragment = new CloudBackendFragment();
+			mProcessingFragment.setRetainInstance(true);
+			fragmentTransaction.add(mProcessingFragment, PROCESSING_FRAGMENT_TAG);
+		}
+		fragmentTransaction.commit();
 	}
 
 	private void login() {
@@ -95,19 +97,19 @@ public class LoginActivity extends Activity implements OnListener {
 		String pass = inputPassword.getText().toString();
 		Boolean exists = false;
 		approved = true;
-		for (int i = 0; i < accounts.size(); i++) {
-			if (accounts.get(i).get("email").toString().equalsIgnoreCase(e)) {
-				if (accounts.get(i).get("pass").toString().equals(pass)) {
+		for (CloudEntity ce : accounts) {
+			if (ce.get("email").toString().equalsIgnoreCase(e)) {
+				if (ce.get("pass").toString().equals(pass)) {
 					exists = true;
-					if (accounts.get(i).get("company") != null) {
-						company = accounts.get(i).get("company").toString();
+					if (ce.get("company") != null) {
+						company = ce.get("company").toString();
 						SharedPreferences.Editor editor = settings.edit();
 						editor.putBoolean("employee", true);
-						editor.putString("name", accounts.get(i).get("name").toString());
-						if (accounts.get(i).get("approved").equals(false)) {
+						editor.putString("name", ce.get("name").toString());
+						if (ce.get("approved").equals(false)) {
 							approved = false;
 						}
-						if (accounts.get(i).get("admin").equals(true)) {
+						if (ce.get("admin").equals(true)) {
 							editor.putBoolean("admin", true);
 						}
 						editor.commit();
@@ -117,27 +119,11 @@ public class LoginActivity extends Activity implements OnListener {
 			}
 		}
 		if (!exists) {
-			Toast.makeText(LoginActivity.this,
-					"There was an error with your email/password combination",
-					Toast.LENGTH_SHORT).show();
+			Toast.makeText(LoginActivity.this, "There was an error with your email/password combination", Toast.LENGTH_SHORT)
+					.show();
 			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-			inputManager.hideSoftInputFromWindow(getCurrentFocus()
-					.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 		}
-	}
-
-	private void initiateFragments() {
-		FragmentTransaction fragmentTransaction = mFragmentManager
-				.beginTransaction();
-		mProcessingFragment = (CloudBackendFragment) mFragmentManager
-				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
-		if (mProcessingFragment == null) {
-			mProcessingFragment = new CloudBackendFragment();
-			mProcessingFragment.setRetainInstance(true);
-			fragmentTransaction.add(mProcessingFragment,
-					PROCESSING_FRAGMENT_TAG);
-		}
-		fragmentTransaction.commit();
 	}
 
 	private void getAccounts() {
@@ -151,9 +137,8 @@ public class LoginActivity extends Activity implements OnListener {
 			public void onError(IOException exception) {
 			}
 		};
-		mProcessingFragment.getCloudBackend().listByKind("ERAppAccounts",
-				CloudEntity.PROP_CREATED_AT, Order.DESC, 10000, Scope.PAST,
-				handler);
+		mProcessingFragment.getCloudBackend().listByKind("ERAppAccounts", CloudEntity.PROP_CREATED_AT, Order.DESC, 10000,
+				Scope.PAST, handler);
 	}
 
 	private boolean isEmpty(EditText etText) {
@@ -167,16 +152,13 @@ public class LoginActivity extends Activity implements OnListener {
 		editor.putString("email", email);
 		int at = email.indexOf("@");
 		int dot = email.indexOf(".");
-		email = email.substring(0, at) + "_" + email.substring(at + 1, dot)
-				+ "_" + email.substring(dot + 1);
+		email = email.substring(0, at) + "_" + email.substring(at + 1, dot) + "_" + email.substring(dot + 1);
 		editor.putString("emailFormatted", email);
 		editor.putString("company", company);
 		Intent intent = new Intent(this, HomeActivity.class);
-		if(!approved) {
+		if (!approved) {
 			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-			inputManager.hideSoftInputFromWindow(getCurrentFocus()
-					.getWindowToken(),
-					InputMethodManager.HIDE_NOT_ALWAYS);
+			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 			Toast.makeText(this, "Please wait for approval from company administrator", Toast.LENGTH_LONG).show();
 			editor.putBoolean("logged", false);
 			editor.commit();
@@ -190,6 +172,10 @@ public class LoginActivity extends Activity implements OnListener {
 	public void signUp(View view) {
 		Intent intent = new Intent(this, SignupActivity.class);
 		startActivity(intent);
+	}
+	
+	@Override
+	public void onCreateFinished() {
 	}
 
 	@Override

@@ -84,8 +84,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_expenses);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		this.getWindow().setSoftInputMode(
-				WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
@@ -109,8 +108,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		int mm = c.get(Calendar.MONTH);
 		int dd = c.get(Calendar.DAY_OF_MONTH);
 
-		date.setText(new StringBuilder().append(mm + 1).append("/").append(dd)
-				.append("/").append(yy));
+		date.setText(new StringBuilder().append(mm + 1).append("/").append(dd).append("/").append(yy));
 
 		Button callCameraButton = (Button) findViewById(R.id.button_camera);
 		callCameraButton.setOnClickListener(new View.OnClickListener() {
@@ -125,16 +123,13 @@ public class ExpenseActivity extends Activity implements OnListener {
 		Button callGalleryButton = (Button) findViewById(R.id.button_gallery);
 		callGalleryButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-				Intent i = new Intent(
-						Intent.ACTION_PICK,
-						android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+				Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 				startActivityForResult(i, SELECT_IMAGE);
 			}
 		});
 
 		Bundle data = getIntent().getExtras();
-		if (data.get("display").equals("view")
-				|| data.get("display").equals("correct")) {
+		if (data.get("display").equals("view") || data.get("display").equals("correct")) {
 			setTitle("Correct Expense");
 			setInputs();
 		}
@@ -144,23 +139,16 @@ public class ExpenseActivity extends Activity implements OnListener {
 	@Override
 	public void onBackPressed() {
 		Bundle data = getIntent().getExtras();
-		if ((!price.getText().toString().isEmpty()
-				|| !merchant.getText().toString().isEmpty()
-				|| !description.getText().toString().isEmpty() || !comment
-				.getText().toString().isEmpty())
-				&& !data.get("display").equals("view")
-				&& !data.get("display").equals("correct")) {
-			new AlertDialog.Builder(this)
-					.setMessage("Discard expense?")
-					.setNegativeButton(android.R.string.no, null)
-					.setPositiveButton(android.R.string.yes,
-							new DialogInterface.OnClickListener() {
+		if ((!price.getText().toString().isEmpty() || !merchant.getText().toString().isEmpty()
+				|| !description.getText().toString().isEmpty() || !comment.getText().toString().isEmpty())
+				&& !data.get("display").equals("view") && !data.get("display").equals("correct")) {
+			new AlertDialog.Builder(this).setMessage("Discard expense?").setNegativeButton(android.R.string.no, null)
+					.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
-								public void onClick(DialogInterface arg0,
-										int arg1) {
-									finish();
-								}
-							}).create().show();
+						public void onClick(DialogInterface arg0, int arg1) {
+							finish();
+						}
+					}).create().show();
 			return;
 		} else {
 			finish();
@@ -180,12 +168,10 @@ public class ExpenseActivity extends Activity implements OnListener {
 			} else if (resultCode == RESULT_CANCELED) {
 			}
 		}
-		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK
-				&& null != data) {
+		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK && null != data) {
 			fileUri = data.getData();
 			String[] filePathColumn = { MediaStore.Images.Media.DATA };
-			Cursor cursor = getContentResolver().query(fileUri, filePathColumn,
-					null, null, null);
+			Cursor cursor = getContentResolver().query(fileUri, filePathColumn, null, null, null);
 			cursor.moveToFirst();
 			int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
 			String picturePath = cursor.getString(columnIndex);
@@ -193,25 +179,19 @@ public class ExpenseActivity extends Activity implements OnListener {
 			Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
 			try {
 				ExifInterface exif = new ExifInterface(picturePath);
-				int orientation = exif.getAttributeInt(
-						ExifInterface.TAG_ORIENTATION, 1);
+				int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
 				if (orientation == 6) {
 					Matrix matrix = new Matrix();
 					matrix.postRotate(90);
-					bitmap = Bitmap
-							.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
-									bitmap.getHeight(), matrix, true);
+					bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			BitmapDrawable drawable = new BitmapDrawable(this.getResources(),
-					bitmap);
+			BitmapDrawable drawable = new BitmapDrawable(this.getResources(), bitmap);
 			if (bitmap.getHeight() > 4096 || bitmap.getWidth() > 4096) {
-				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap
-						.getWidth()));
-				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh,
-						true);
+				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap.getWidth()));
+				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh, true);
 				drawable = new BitmapDrawable(this.getResources(), scaled);
 			} else {
 				drawable = new BitmapDrawable(this.getResources(), bitmap);
@@ -226,13 +206,11 @@ public class ExpenseActivity extends Activity implements OnListener {
 	 * onClick method. Sends input in text fields to datastore.
 	 */
 	public void onSendButtonPressed(View view) {
-		if (isEmpty(price) && isEmpty(merchant) && isEmpty(description)
-				&& isEmpty(comment)) {
-			Toast.makeText(this, "Nothing to submit", Toast.LENGTH_SHORT)
-					.show();
+		if (isEmpty(price) && isEmpty(merchant) && isEmpty(description) && isEmpty(comment)) {
+			Toast.makeText(this, "Nothing to submit", Toast.LENGTH_SHORT).show();
 			return;
 		}
-	
+
 		String acc = settings.getString("emailFormatted", "");
 		if (settings.getBoolean("employee", false)) {
 			acc = "Co_" + settings.getString("company", "");
@@ -246,7 +224,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 			@Override
 			public void onComplete(final CloudEntity result) {
 			}
-	
+
 			@Override
 			public void onError(final IOException exception) {
 				toast = "Unable to connect to server";
@@ -259,7 +237,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		} else {
 			mProcessingFragment.getCloudBackend().insert(expense, handler);
 		}
-	
+
 		// return to previous activity
 		finish();
 		if (data.get("display").equals("correct")) {
@@ -336,12 +314,12 @@ public class ExpenseActivity extends Activity implements OnListener {
 		} else if (data.get("display").equals("correct")) {
 			expense.put("correctable", false);
 		}
-	
+
 		// save currency
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putInt("index", currency.getSelectedItemPosition());
 		editor.commit();
-	
+
 		return expense;
 	}
 
@@ -362,12 +340,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 		description.setText(data.get("description").toString());
 		date.setText(data.get("date").toString());
 		comment.setText(data.get("comment").toString());
-		currency.setSelection((int) Double.parseDouble(data.get("currency")
-				.toString()));
-		category.setSelection((int) Double.parseDouble(data.get("category")
-				.toString()));
-		payment.setSelection((int) Double.parseDouble(data.get("payment")
-				.toString()));
+		currency.setSelection((int) Double.parseDouble(data.get("currency").toString()));
+		category.setSelection((int) Double.parseDouble(data.get("category").toString()));
+		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
 
 		if (data.get("display").equals("view")) {
 			setTitle("Expense");
@@ -399,62 +374,47 @@ public class ExpenseActivity extends Activity implements OnListener {
 	}
 
 	private void initiateFragments() {
-		FragmentTransaction fragmentTransaction = mFragmentManager
-				.beginTransaction();
-		mProcessingFragment = (CloudBackendFragment) mFragmentManager
-				.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
+		FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+		mProcessingFragment = (CloudBackendFragment) mFragmentManager.findFragmentByTag(PROCESSING_FRAGMENT_TAG);
 		if (mProcessingFragment == null) {
 			mProcessingFragment = new CloudBackendFragment();
 			mProcessingFragment.setRetainInstance(true);
-			fragmentTransaction.add(mProcessingFragment,
-					PROCESSING_FRAGMENT_TAG);
+			fragmentTransaction.add(mProcessingFragment, PROCESSING_FRAGMENT_TAG);
 		}
 		fragmentTransaction.commit();
 	}
 
 	private File getOutputPhotoFile() {
-		File directory = new File(
-				Environment
-						.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-				getPackageName());
+		File directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), getPackageName());
 		if (!directory.exists()) {
 			if (!directory.mkdirs()) {
 				Log.e(TAG, "Failed to create storage directory.");
 				return null;
 			}
 		}
-		String timeStamp = new SimpleDateFormat("yyyMMdd_HHmmss", Locale.US)
-				.format(new Date());
-		return new File(directory.getPath() + File.separator + "IMG_"
-				+ timeStamp + ".jpg");
+		String timeStamp = new SimpleDateFormat("yyyMMdd_HHmmss", Locale.US).format(new Date());
+		return new File(directory.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
 	}
 
 	private void showPhoto(String photoUri) {
 		File imageFile = new File(photoUri);
 		if (imageFile.exists()) {
-			Bitmap bitmap = BitmapFactory.decodeFile(imageFile
-					.getAbsolutePath());
+			Bitmap bitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
 			try {
 				ExifInterface exif = new ExifInterface(photoUri);
-				int orientation = exif.getAttributeInt(
-						ExifInterface.TAG_ORIENTATION, 1);
+				int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, 1);
 				if (orientation == 6) {
 					Matrix matrix = new Matrix();
 					matrix.postRotate(90);
-					bitmap = Bitmap
-							.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
-									bitmap.getHeight(), matrix, true);
+					bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			BitmapDrawable drawable = new BitmapDrawable(this.getResources(),
-					bitmap);
+			BitmapDrawable drawable = new BitmapDrawable(this.getResources(), bitmap);
 			if (bitmap.getHeight() > 4096 || bitmap.getWidth() > 4096) {
-				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap
-						.getWidth()));
-				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh,
-						true);
+				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap.getWidth()));
+				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh, true);
 				drawable = new BitmapDrawable(this.getResources(), scaled);
 			} else {
 				drawable = new BitmapDrawable(this.getResources(), bitmap);

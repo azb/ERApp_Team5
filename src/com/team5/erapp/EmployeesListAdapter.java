@@ -1,8 +1,6 @@
 package com.team5.erapp;
 
-import java.text.NumberFormat;
 import java.util.List;
-import java.util.Locale;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -14,7 +12,7 @@ import android.widget.TextView;
 import com.google.cloud.backend.core.CloudEntity;
 
 public class EmployeesListAdapter extends ArrayAdapter<CloudEntity> {
-	
+
 	private LayoutInflater mInflater;
 
 	/**
@@ -24,23 +22,19 @@ public class EmployeesListAdapter extends ArrayAdapter<CloudEntity> {
 	 * @param textViewResourceId
 	 * @param objects
 	 */
-	public EmployeesListAdapter(Context context, int textViewResourceId,
-			List<CloudEntity> objects) {
+	public EmployeesListAdapter(Context context, int textViewResourceId, List<CloudEntity> objects) {
 		super(context, textViewResourceId, objects);
-		mInflater = (LayoutInflater) context
-				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		View view = convertView != null ? convertView : mInflater.inflate(
-				R.layout.row_employee, parent, false);
+		View view = convertView != null ? convertView : mInflater.inflate(R.layout.row_employee, parent, false);
 
 		CloudEntity ce = getItem(position);
 		if (ce != null) {
 			TextView name = (TextView) view.findViewById(R.id.row_name);
-			TextView email = (TextView) view
-					.findViewById(R.id.row_email);
+			TextView email = (TextView) view.findViewById(R.id.row_email);
 			name.setText(ce.get("name").toString());
 			email.setText(ce.get("name").toString());
 		}

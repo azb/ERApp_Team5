@@ -51,9 +51,9 @@
     <string-array name="entries_category">
         <item>Category</item>
         <item>Bill</item>
+        <item>Dining</item>
         <item>Entertainment</item>
         <item>Education</item>
-        <item>Food</item>
         <item>Fuel</item>
         <item>Lodging</item>
         <item>Medical</item>
