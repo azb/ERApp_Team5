@@ -1,16 +1,21 @@
 package com.team5.erapp;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+import java.util.Locale;
 
 import com.google.cloud.backend.core.CloudBackendFragment;
 import com.google.cloud.backend.core.CloudCallbackHandler;
+import com.google.cloud.backend.core.CloudQuery;
+import com.google.cloud.backend.core.Filter;
 import com.google.cloud.backend.core.CloudBackendFragment.OnListener;
-import com.google.cloud.backend.core.CloudQuery.Order;
 import com.google.cloud.backend.core.CloudQuery.Scope;
 import com.google.cloud.backend.core.CloudEntity;
 import com.team5.erapp.R;
 
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.FragmentManager;
@@ -19,11 +24,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnKeyListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class LoginActivity extends Activity implements OnListener {
@@ -31,8 +39,6 @@ public class LoginActivity extends Activity implements OnListener {
 	private Button btnLogin;
 	private EditText inputEmail;
 	private EditText inputPassword;
-	private List<CloudEntity> accounts;
-	private String company;
 	private Boolean approved;
 
 	private SharedPreferences settings;
@@ -48,9 +54,10 @@ public class LoginActivity extends Activity implements OnListener {
 		super.onCreate(savedInstanceState);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.activity_login);
+		PRNGFixes.apply();
+		
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
-		company = "";
 
 		SharedPreferences.Editor editor = settings.edit();
 		editor.clear();
@@ -64,21 +71,124 @@ public class LoginActivity extends Activity implements OnListener {
 			@Override
 			public void onClick(View v) {
 				InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+				inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 				if (isEmpty(inputEmail) || isEmpty(inputPassword)) {
-					Toast.makeText(LoginActivity.this, "Please input email and password", Toast.LENGTH_SHORT).show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+					Toast.makeText(LoginActivity.this, "Please input email and password.", Toast.LENGTH_SHORT).show();
 					return;
 				}
-				login();
+				final String pass = inputPassword.getText().toString();
+				checkCredentials(inputEmail.getText().toString(), pass);
+			}
+		});
+		inputPassword.setImeActionLabel("Enter", KeyEvent.KEYCODE_ENTER);
+		inputPassword.setOnKeyListener(new OnKeyListener() {
+			public boolean onKey(View v, int keyCode, KeyEvent event) {
+				// If the event is a key-down event on the "enter" button
+				if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+					if (isEmpty(inputEmail) || isEmpty(inputPassword)) {
+						Toast.makeText(LoginActivity.this, "Please input email and password.", Toast.LENGTH_SHORT).show();
+						return false;
+					}
+					final String pass = inputPassword.getText().toString();
+					checkCredentials((inputEmail.getText().toString()), pass);
+					return true;
+				}
+				return false;
 			}
 		});
 		initiateFragments();
 	}
 
-	@Override
-	public void onResume() {
-		super.onResume();
-		getAccounts();
+	private void checkCredentials(String email, final String pass) {
+		CloudQuery cq = new CloudQuery("ERAppAccounts");
+		cq.setFilter(Filter.eq("email", email.toLowerCase(Locale.getDefault())));
+		cq.setScope(Scope.PAST);
+		mProcessingFragment.getCloudBackend().list(cq, new CloudCallbackHandler<List<CloudEntity>>() {
+			@Override
+			public void onComplete(List<CloudEntity> results) {
+				if (!results.isEmpty()) {
+					boolean matched = false;
+					String storedPass = (String) results.get(0).get("pass").toString();
+					try {
+						matched = PassHash.validatePassword(pass, storedPass);
+					} catch (NoSuchAlgorithmException e) {
+						e.printStackTrace();
+					} catch (InvalidKeySpecException e) {
+						e.printStackTrace();
+					}
+					if (matched) {
+//						inputEmail.setVisibility(View.GONE);
+//						inputPassword.setVisibility(View.GONE);
+//						btnLogin.setVisibility(View.GONE);
+//						Button signup = (Button) findViewById(R.id.buttonSignup);
+//						signup.setVisibility(View.GONE);
+//						TextView logging = (TextView) findViewById(R.id.loggingLogin);
+//						logging.setVisibility(View.VISIBLE);
+						login(results.get(0));
+					} else {
+						Toast.makeText(LoginActivity.this, "There was an error with your email/password combination.",
+								Toast.LENGTH_SHORT).show();
+					}
+				} else {
+					Toast.makeText(LoginActivity.this, "There was an error with your email/password combination.",
+							Toast.LENGTH_SHORT).show();
+				}
+			}
+
+			@Override
+			public void onError(IOException exception) {
+			}
+		});
+	}
+
+	private void login(CloudEntity ce) {
+		approved = true;
+		if (ce.get("company") != null) {
+			SharedPreferences.Editor editor = settings.edit();
+			editor.putString("company", ce.get("company").toString());
+			editor.putBoolean("employee", true);
+			editor.putString("name", ce.get("name").toString());
+			if (ce.get("approved").equals(false)) {
+				approved = false;
+			}
+			if (ce.get("admin").equals(true)) {
+				editor.putBoolean("admin", true);
+			}
+			editor.commit();
+		}
+		goHome();
+	}
+
+	private boolean isEmpty(EditText etText) {
+		return etText.getText().toString().trim().length() == 0;
+	}
+
+	private void goHome() {
+		SharedPreferences.Editor editor = settings.edit();
+		String email = inputEmail.getText().toString();
+		editor.putString("email", email);
+		int at = email.indexOf("@");
+		int dot = email.indexOf(".");
+		email = email.substring(0, at) + "_" + email.substring(at + 1, dot) + "_" + email.substring(dot + 1);
+		editor.putString("emailFormatted", email);
+		Intent intent = new Intent(this, HomeActivity.class);
+		if (!approved) {
+			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+			Toast.makeText(this, "Please wait for approval from company admin.", Toast.LENGTH_LONG).show();
+			editor.commit();
+			return;
+		} else {
+			editor.putBoolean("logged", true);
+		}
+		editor.commit();
+		startActivity(intent);
+		finish();
+	}
+
+	public void signUp(View view) {
+		Intent intent = new Intent(this, SignupActivity.class);
+		startActivity(intent);
 	}
 
 	private void initiateFragments() {
@@ -92,88 +202,6 @@ public class LoginActivity extends Activity implements OnListener {
 		fragmentTransaction.commit();
 	}
 
-	private void login() {
-		String e = inputEmail.getText().toString();
-		String pass = inputPassword.getText().toString();
-		Boolean exists = false;
-		approved = true;
-		for (CloudEntity ce : accounts) {
-			if (ce.get("email").toString().equalsIgnoreCase(e)) {
-				if (ce.get("pass").toString().equals(pass)) {
-					exists = true;
-					if (ce.get("company") != null) {
-						company = ce.get("company").toString();
-						SharedPreferences.Editor editor = settings.edit();
-						editor.putBoolean("employee", true);
-						editor.putString("name", ce.get("name").toString());
-						if (ce.get("approved").equals(false)) {
-							approved = false;
-						}
-						if (ce.get("admin").equals(true)) {
-							editor.putBoolean("admin", true);
-						}
-						editor.commit();
-					}
-					goHome();
-				}
-			}
-		}
-		if (!exists) {
-			Toast.makeText(LoginActivity.this, "There was an error with your email/password combination", Toast.LENGTH_SHORT)
-					.show();
-			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-		}
-	}
-
-	private void getAccounts() {
-		CloudCallbackHandler<List<CloudEntity>> handler = new CloudCallbackHandler<List<CloudEntity>>() {
-			@Override
-			public void onComplete(List<CloudEntity> results) {
-				accounts = results;
-			}
-
-			@Override
-			public void onError(IOException exception) {
-			}
-		};
-		mProcessingFragment.getCloudBackend().listByKind("ERAppAccounts", CloudEntity.PROP_CREATED_AT, Order.DESC, 10000,
-				Scope.PAST, handler);
-	}
-
-	private boolean isEmpty(EditText etText) {
-		return etText.getText().toString().trim().length() == 0;
-	}
-
-	private void goHome() {
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putBoolean("logged", true);
-		String email = inputEmail.getText().toString();
-		editor.putString("email", email);
-		int at = email.indexOf("@");
-		int dot = email.indexOf(".");
-		email = email.substring(0, at) + "_" + email.substring(at + 1, dot) + "_" + email.substring(dot + 1);
-		editor.putString("emailFormatted", email);
-		editor.putString("company", company);
-		Intent intent = new Intent(this, HomeActivity.class);
-		if (!approved) {
-			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-			Toast.makeText(this, "Please wait for approval from company administrator", Toast.LENGTH_LONG).show();
-			editor.putBoolean("logged", false);
-			editor.commit();
-			return;
-		}
-		editor.commit();
-		startActivity(intent);
-		finish();
-	}
-
-	public void signUp(View view) {
-		Intent intent = new Intent(this, SignupActivity.class);
-		startActivity(intent);
-	}
-	
 	@Override
 	public void onCreateFinished() {
 	}

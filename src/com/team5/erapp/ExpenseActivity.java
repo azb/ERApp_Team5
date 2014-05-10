@@ -21,8 +21,10 @@ import com.team5.erapp.R;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -41,8 +43,11 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -68,6 +73,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private String toast;
 	private int length;
 	private boolean incomplete;
+	private int yy, mm, dd;
 
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
@@ -83,8 +89,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_expenses);
-		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+//		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
@@ -97,18 +104,49 @@ public class ExpenseActivity extends Activity implements OnListener {
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
 		submit = (Button) findViewById(R.id.button_submit);
+
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 
 		currency.setSelection(settings.getInt("index", 7));
 		img.setBackgroundColor(Color.GRAY);
 
+//		OnClickListener hideKey = new OnClickListener() {
+//
+//			@Override
+//			public void onClick(View v) {
+//				getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+//			}
+//		};
+//		price.setOnClickListener(hideKey);
+//		merchant.setOnClickListener(hideKey);
+//		description.setOnClickListener(hideKey);
+//		comment.setOnClickListener(hideKey);
+		
 		final Calendar c = Calendar.getInstance();
-		int yy = c.get(Calendar.YEAR);
-		int mm = c.get(Calendar.MONTH);
-		int dd = c.get(Calendar.DAY_OF_MONTH);
+		yy = c.get(Calendar.YEAR);
+		mm = c.get(Calendar.MONTH);
+		dd = c.get(Calendar.DAY_OF_MONTH);
 
 		date.setText(new StringBuilder().append(mm + 1).append("/").append(dd).append("/").append(yy));
+		date.setFocusable(false);
+		date.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				DatePickerDialog dpd = new DatePickerDialog(ExpenseActivity.this, new DatePickerDialog.OnDateSetListener() {
+
+					@Override
+					public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+						yy = year;
+						mm = monthOfYear;
+						dd = dayOfMonth;
+						date.setText(new StringBuilder().append(mm + 1).append("/").append(dd).append("/").append(yy));
+					}
+				}, yy, mm, dd);
+				dpd.show();
+			}
+		});
 
 		Button callCameraButton = (Button) findViewById(R.id.button_camera);
 		callCameraButton.setOnClickListener(new View.OnClickListener() {
@@ -142,7 +180,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		if ((!price.getText().toString().isEmpty() || !merchant.getText().toString().isEmpty()
 				|| !description.getText().toString().isEmpty() || !comment.getText().toString().isEmpty())
 				&& !data.get("display").equals("view") && !data.get("display").equals("correct")) {
-			new AlertDialog.Builder(this).setMessage("Discard expense?").setNegativeButton(android.R.string.no, null)
+			new AlertDialog.Builder(this).setMessage("Discard changes?").setNegativeButton(android.R.string.no, null)
 					.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
 						public void onClick(DialogInterface arg0, int arg1) {
@@ -207,13 +245,13 @@ public class ExpenseActivity extends Activity implements OnListener {
 	 */
 	public void onSendButtonPressed(View view) {
 		if (isEmpty(price) && isEmpty(merchant) && isEmpty(description) && isEmpty(comment)) {
-			Toast.makeText(this, "Nothing to submit", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "Nothing to submit.", Toast.LENGTH_SHORT).show();
 			return;
 		}
 
 		String acc = settings.getString("emailFormatted", "");
 		if (settings.getBoolean("employee", false)) {
-			acc = "Co_" + settings.getString("company", "");
+			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");
 		}
 		CloudEntity expense = new CloudEntity("ERApp_" + acc);
 		expense = addData(expense);
@@ -360,7 +398,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 			price.setFocusable(false);
 			merchant.setFocusable(false);
 			description.setFocusable(false);
-			date.setFocusable(false);
+			date.setOnClickListener(null);
 			comment.setFocusable(false);
 			currency.setClickable(false);
 			category.setClickable(false);

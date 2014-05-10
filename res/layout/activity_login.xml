@@ -10,9 +10,9 @@
         android:id="@+id/buttonSignup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="40dp"
+        android:layout_below="@+id/buttonLogin"
+        android:layout_marginTop="130dp"
         android:onClick="signUp"
         android:text="@string/button_signup" />
 
@@ -20,9 +20,9 @@
         android:id="@+id/emailLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
+        android:layout_below="@+id/textView1"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="50dp"
         android:ems="10"
         android:hint="@string/text_email"
         android:inputType="textEmailAddress" />
@@ -44,7 +44,25 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/passLogin"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
         android:text="@string/button_login" />
 
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:text="@string/welcome" />
+
+    <TextView
+        android:id="@+id/loggingLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="@string/logging"
+        android:textSize="20sp"
+        android:visibility="gone" />
+    
 </RelativeLayout>

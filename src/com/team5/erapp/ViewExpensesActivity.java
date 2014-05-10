@@ -151,7 +151,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		case R.id.action_export:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			final CharSequence[] items = { "Month", "Current year", "Previous year", "All" };
-			final CharSequence[] items2 = { "Month", "Current year", "Previous year", "All", "Employee" };
+			final CharSequence[] items2 = { "Month", "Current year", "Previous year", "Employee", "All" };
 			DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
 
 				@Override
@@ -275,7 +275,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		};
 		String acc = settings.getString("emailFormatted", "");
 		if (settings.getBoolean("employee", false)) {
-			acc = "Co_" + settings.getString("company", "");
+			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");
 		}
 		if (data.get("display").equals("view")) {
 			mProcessingFragment.getCloudBackend().listByKind("ERApp_" + acc, settings.getString("sort", "_createdAt"),
@@ -298,7 +298,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			emptyView.setVisibility(View.GONE);
 			mExpensesView.setAdapter(new ExpensesListAdapter(this, android.R.layout.simple_list_item_1, mExpenses));
 		} else if (data.get("display").equals("correct")) {
-			emptyView.setText("No correctable expenses");
+			emptyView.setText("No expenses to correct");
 			emptyView.setVisibility(View.VISIBLE);
 		} else {
 			emptyView.setText("No expenses");

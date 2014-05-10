@@ -51,8 +51,7 @@
         <activity
             android:name="com.team5.erapp.ExpenseActivity"
             android:label="@string/title_activity_display_message"
-            android:parentActivityName="com.team5.erapp.HomeActivity"
-            android:windowSoftInputMode="stateHidden" >
+            android:parentActivityName="com.team5.erapp.HomeActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.example.app.MainActivity" />

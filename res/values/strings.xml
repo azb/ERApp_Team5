@@ -6,7 +6,7 @@
     <string name="edit_message">Enter a message</string>
     <string name="button_add">Add Expense</string>
     <string name="title_activity_display_message">Add Expense</string>
-    <string name="action_logout">Logout</string>
+    <string name="action_logout">Log out</string>
     <string name="title_activity_view_expenses">Expenses</string>
     <string name="button_submit">Submit</string>
     <string name="button_camera">Camera</string>
@@ -47,6 +47,8 @@
     <string name="no_expenses">No expenses</string>
     <string name="company_signup">Company</string>
     <string name="no_additions">No pending additions</string>
+    <string name="welcome">Welcome to ERApp. Please log in or sign up.</string>
+    <string name="logging">Logging in</string>
 
     <string-array name="entries_category">
         <item>Category</item>

@@ -14,19 +14,19 @@
     <Button
         android:id="@+id/button_add"
         android:layout_width="225dp"
-        android:layout_height="75dp"
+        android:layout_height="80dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginBottom="15dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="25dp"
         android:onClick="addExpense"
         android:text="@string/button_add" />
 
     <Button
         android:id="@+id/buttonLogin"
         android:layout_width="225dp"
-        android:layout_height="75dp"
+        android:layout_height="80dp"
         android:layout_below="@+id/button_add"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
@@ -37,7 +37,7 @@
     <Button
         android:id="@+id/buttonSignup"
         android:layout_width="225dp"
-        android:layout_height="75dp"
+        android:layout_height="80dp"
         android:layout_below="@+id/buttonLogin"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
@@ -48,11 +48,11 @@
     <Button
         android:id="@+id/button_addEmployee"
         android:layout_width="225dp"
-        android:layout_height="75dp"
+        android:layout_height="80dp"
         android:layout_below="@+id/buttonSignup"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="25dp"
         android:layout_marginTop="10dp"
         android:onClick="addEmployee"
         android:text="@string/button_addEmployee" />

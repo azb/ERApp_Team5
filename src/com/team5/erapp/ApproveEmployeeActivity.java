@@ -20,6 +20,7 @@ import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -38,7 +39,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 	private CloudBackendFragment mProcessingFragment;
 	private TextView emptyView;
 	private CloudEntity ce;
-	
+
 	public static final String PREFS_NAME = "MyPrefsFile";
 	private SharedPreferences settings;
 
@@ -49,6 +50,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.activity_add_employee);
 		emptyView = (TextView) findViewById(R.id.no_employees);
 		emptyView.setText("Loading...");
@@ -71,7 +73,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				ce = (CloudEntity) mEmployeesView.getItemAtPosition(position);
-				new AlertDialog.Builder(ApproveEmployeeActivity.this).setMessage("Approve user?")
+				new AlertDialog.Builder(ApproveEmployeeActivity.this).setMessage("Approve " + ce.get("name").toString() + "?")
 						.setNegativeButton(android.R.string.no, null)
 						.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
@@ -90,8 +92,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 									public void onError(final IOException exception) {
 									}
 								};
-								mProcessingFragment.getCloudBackend().update(ce,
-										handler);
+								mProcessingFragment.getCloudBackend().update(ce, handler);
 							}
 						}).create().show();
 				return;
@@ -101,11 +102,15 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 
 	private void listEmployees() {
 		// create a response handler that will receive the result or an error
-		CloudCallbackHandler<List<CloudEntity>> handler = new CloudCallbackHandler<List<CloudEntity>>() {
+		CloudQuery cq = new CloudQuery("ERAppAccounts");
+		cq.setFilter(Filter.and(Filter.eq("approved", false),
+				Filter.eq("company", settings.getString("company", ""))));
+		cq.setScope(Scope.PAST);
+		mProcessingFragment.getCloudBackend().list(cq, new CloudCallbackHandler<List<CloudEntity>>() {
 			@Override
 			public void onComplete(List<CloudEntity> results) {
-				for (int i = 0; i < results.size(); i++) {
-					mEmployees.add(results.get(i));
+				for (CloudEntity ce : results) {
+					mEmployees.add(ce);
 				}
 				updateEmployeesView();
 			}
@@ -114,11 +119,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 			public void onError(IOException exception) {
 				emptyView.setText("Unable to connect to server");
 			}
-		};
-		CloudQuery cq = new CloudQuery("ERAppAccounts");
-		cq.setFilter(Filter.and(Filter.eq("approved", false), Filter.eq("company", settings.getString("company", ""))));
-		cq.setScope(Scope.PAST);
-		mProcessingFragment.getCloudBackend().list(cq, handler);
+		});
 	}
 
 	private void updateEmployeesView() {
