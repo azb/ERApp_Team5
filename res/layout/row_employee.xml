@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginLeft="5dp"
-        android:layout_weight="40"
+        android:layout_weight="35"
         android:paddingRight="10dp"
         android:textSize="16sp" />
 
@@ -26,11 +26,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_weight="65"
         android:paddingBottom="13dp"
-        android:paddingTop="13dp"
-        android:layout_weight="60"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
+        android:paddingTop="13dp"
         android:textSize="16sp" />
 
 </LinearLayout>

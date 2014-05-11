@@ -11,8 +11,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/buttonLogin"
-        android:layout_marginTop="130dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="40dp"
         android:onClick="signUp"
         android:text="@string/button_signup" />
 
@@ -20,7 +20,7 @@
         android:id="@+id/emailLogin"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
+        android:layout_below="@+id/welcomeSignup"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
         android:ems="10"
@@ -48,7 +48,7 @@
         android:text="@string/button_login" />
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/welcomeSignup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"

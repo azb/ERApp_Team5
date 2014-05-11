@@ -15,11 +15,11 @@ import com.google.cloud.backend.core.CloudQuery.Scope;
 import com.google.cloud.backend.core.CloudEntity;
 import com.team5.erapp.R;
 
-import android.opengl.Visibility;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,7 +31,6 @@ import android.view.View.OnKeyListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class LoginActivity extends Activity implements OnListener {
@@ -40,6 +39,7 @@ public class LoginActivity extends Activity implements OnListener {
 	private EditText inputEmail;
 	private EditText inputPassword;
 	private Boolean approved;
+	private ProgressDialog progress;
 
 	private SharedPreferences settings;
 
@@ -76,11 +76,14 @@ public class LoginActivity extends Activity implements OnListener {
 					Toast.makeText(LoginActivity.this, "Please input email and password.", Toast.LENGTH_SHORT).show();
 					return;
 				}
+				progress = new ProgressDialog(LoginActivity.this);
+				progress.setMessage("Logging in...");
+				progress.show();
 				final String pass = inputPassword.getText().toString();
 				checkCredentials(inputEmail.getText().toString(), pass);
 			}
 		});
-		inputPassword.setImeActionLabel("Enter", KeyEvent.KEYCODE_ENTER);
+		inputPassword.setImeActionLabel("Log in", KeyEvent.KEYCODE_ENTER);
 		inputPassword.setOnKeyListener(new OnKeyListener() {
 			public boolean onKey(View v, int keyCode, KeyEvent event) {
 				// If the event is a key-down event on the "enter" button
@@ -89,6 +92,9 @@ public class LoginActivity extends Activity implements OnListener {
 						Toast.makeText(LoginActivity.this, "Please input email and password.", Toast.LENGTH_SHORT).show();
 						return false;
 					}
+					progress = new ProgressDialog(LoginActivity.this);
+					progress.setMessage("Logging in...");
+					progress.show();
 					final String pass = inputPassword.getText().toString();
 					checkCredentials((inputEmail.getText().toString()), pass);
 					return true;
@@ -117,19 +123,14 @@ public class LoginActivity extends Activity implements OnListener {
 						e.printStackTrace();
 					}
 					if (matched) {
-//						inputEmail.setVisibility(View.GONE);
-//						inputPassword.setVisibility(View.GONE);
-//						btnLogin.setVisibility(View.GONE);
-//						Button signup = (Button) findViewById(R.id.buttonSignup);
-//						signup.setVisibility(View.GONE);
-//						TextView logging = (TextView) findViewById(R.id.loggingLogin);
-//						logging.setVisibility(View.VISIBLE);
 						login(results.get(0));
 					} else {
+						progress.dismiss();
 						Toast.makeText(LoginActivity.this, "There was an error with your email/password combination.",
 								Toast.LENGTH_SHORT).show();
 					}
 				} else {
+					progress.dismiss();
 					Toast.makeText(LoginActivity.this, "There was an error with your email/password combination.",
 							Toast.LENGTH_SHORT).show();
 				}
@@ -173,8 +174,7 @@ public class LoginActivity extends Activity implements OnListener {
 		editor.putString("emailFormatted", email);
 		Intent intent = new Intent(this, HomeActivity.class);
 		if (!approved) {
-			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+			progress.dismiss();
 			Toast.makeText(this, "Please wait for approval from company admin.", Toast.LENGTH_LONG).show();
 			editor.commit();
 			return;
@@ -182,6 +182,7 @@ public class LoginActivity extends Activity implements OnListener {
 			editor.putBoolean("logged", true);
 		}
 		editor.commit();
+		progress.dismiss();
 		startActivity(intent);
 		finish();
 	}

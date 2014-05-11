@@ -2,7 +2,6 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <string name="app_name">ERApp</string>
-    <string name="action_settings">Settings</string>
     <string name="edit_message">Enter a message</string>
     <string name="button_add">Add Expense</string>
     <string name="title_activity_display_message">Add Expense</string>
@@ -41,14 +40,19 @@
     <string name="action_sortDate">Sort by date</string>
     <string name="action_sortPrice">Sort by price</string>
     <string name="action_export">Export to CSV</string>
-    <string name="title_export">Select range</string>
-    <string name="title_month">Select month</string>
-    <string name="title_year">Select year</string>
+    <string name="title_export">Select range:</string>
+    <string name="title_month">Select month:</string>
+    <string name="title_year">Select year:</string>
     <string name="no_expenses">No expenses</string>
     <string name="company_signup">Company</string>
     <string name="no_additions">No pending additions</string>
     <string name="welcome">Welcome to ERApp. Please log in or sign up.</string>
+    <string name="remove">Remove</string>
     <string name="logging">Logging in</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete filtered</string>
+    <string name="title_filter">Filter by:</string>
 
     <string-array name="entries_category">
         <item>Category</item>

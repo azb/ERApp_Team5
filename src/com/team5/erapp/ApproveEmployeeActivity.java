@@ -17,6 +17,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,8 +38,8 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 	private ListView mEmployeesView;
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
-	private TextView emptyView;
 	private CloudEntity ce;
+	private ProgressDialog progress;
 
 	public static final String PREFS_NAME = "MyPrefsFile";
 	private SharedPreferences settings;
@@ -52,9 +53,9 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 		super.onCreate(savedInstanceState);
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.activity_add_employee);
-		emptyView = (TextView) findViewById(R.id.no_employees);
-		emptyView.setText("Loading...");
-		emptyView.setVisibility(View.VISIBLE);
+		progress = new ProgressDialog(this);
+		progress.setMessage("Loading...");
+		progress.show();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 		initializeView();
 		mFragmentManager = getFragmentManager();
@@ -74,12 +75,29 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				ce = (CloudEntity) mEmployeesView.getItemAtPosition(position);
 				new AlertDialog.Builder(ApproveEmployeeActivity.this).setMessage("Approve " + ce.get("name").toString() + "?")
-						.setNegativeButton(android.R.string.no, null)
-						.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+						.setNegativeButton(R.string.remove, new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface arg0, int arg1) {
+								mProcessingFragment.getCloudBackend().delete(ce, new CloudCallbackHandler<Void>() {
+									@Override
+									public void onComplete(Void result) {
+										Intent i = getIntent();
+										finish();
+										overridePendingTransition(0, 0);
+										startActivity(i);
+									}
+
+									@Override
+									public void onError(final IOException exception) {
+									}
+
+								});
+							}
+						}).setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
 							public void onClick(DialogInterface arg0, int arg1) {
 								ce.put("approved", true);
-								CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
+								mProcessingFragment.getCloudBackend().update(ce, new CloudCallbackHandler<CloudEntity>() {
 									@Override
 									public void onComplete(final CloudEntity result) {
 										Intent i = getIntent();
@@ -91,8 +109,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 									@Override
 									public void onError(final IOException exception) {
 									}
-								};
-								mProcessingFragment.getCloudBackend().update(ce, handler);
+								});
 							}
 						}).create().show();
 				return;
@@ -103,8 +120,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 	private void listEmployees() {
 		// create a response handler that will receive the result or an error
 		CloudQuery cq = new CloudQuery("ERAppAccounts");
-		cq.setFilter(Filter.and(Filter.eq("approved", false),
-				Filter.eq("company", settings.getString("company", ""))));
+		cq.setFilter(Filter.and(Filter.eq("approved", false), Filter.eq("company", settings.getString("company", ""))));
 		cq.setScope(Scope.PAST);
 		mProcessingFragment.getCloudBackend().list(cq, new CloudCallbackHandler<List<CloudEntity>>() {
 			@Override
@@ -117,12 +133,15 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 
 			@Override
 			public void onError(IOException exception) {
+				TextView emptyView = (TextView) findViewById(R.id.no_employees);
 				emptyView.setText("Unable to connect to server");
 			}
 		});
 	}
 
 	private void updateEmployeesView() {
+		progress.dismiss();
+		TextView emptyView = (TextView) findViewById(R.id.no_employees);
 		if (!mEmployees.isEmpty()) {
 			emptyView.setVisibility(View.GONE);
 			mEmployeesView.setAdapter(new EmployeesListAdapter(this, android.R.layout.simple_list_item_1, mEmployees));

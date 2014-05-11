@@ -41,11 +41,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.provider.ContactsContract.Data;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -68,7 +71,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private Spinner payment;
 	private Uri fileUri = null;
 	private LinearLayout img;
-	private Button submit;
 	private SharedPreferences settings;
 	private String toast;
 	private int length;
@@ -103,8 +105,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
-		submit = (Button) findViewById(R.id.button_submit);
-
+		
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 
@@ -175,6 +176,26 @@ public class ExpenseActivity extends Activity implements OnListener {
 	}
 
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		Bundle data = getIntent().getExtras();
+		if (!data.get("display").equals("view")) {
+			getMenuInflater().inflate(R.menu.save, menu);
+		}
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.action_save:
+			onSaveButtonPressed();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+	
+	@Override
 	public void onBackPressed() {
 		Bundle data = getIntent().getExtras();
 		if ((!price.getText().toString().isEmpty() || !merchant.getText().toString().isEmpty()
@@ -243,7 +264,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 	/**
 	 * onClick method. Sends input in text fields to datastore.
 	 */
-	public void onSendButtonPressed(View view) {
+	public void onSaveButtonPressed() {
+		InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 		if (isEmpty(price) && isEmpty(merchant) && isEmpty(description) && isEmpty(comment)) {
 			Toast.makeText(this, "Nothing to submit.", Toast.LENGTH_SHORT).show();
 			return;
@@ -292,7 +315,12 @@ public class ExpenseActivity extends Activity implements OnListener {
 				Toast.makeText(ExpenseActivity.this, toast, length).show();
 			}
 		};
-		toaster.postDelayed(run, 500);
+		if (data.get("display").equals("correct")) {
+			toaster.postDelayed(run, 1300);
+		} else {
+			toaster.postDelayed(run, 500);
+		}
+		
 	}
 
 	private CloudEntity addData(CloudEntity expense) {
@@ -403,7 +431,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 			currency.setClickable(false);
 			category.setClickable(false);
 			payment.setClickable(false);
-			submit.setVisibility(View.GONE);
 		}
 	}
 

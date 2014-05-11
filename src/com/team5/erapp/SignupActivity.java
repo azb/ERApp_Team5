@@ -21,6 +21,7 @@ import com.team5.erapp.R;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -48,6 +49,7 @@ public class SignupActivity extends Activity implements OnListener {
 	private boolean checked;
 	private boolean approved;
 	private boolean coExists;
+	private ProgressDialog progress;
 
 	private SharedPreferences settings;
 
@@ -93,30 +95,30 @@ public class SignupActivity extends Activity implements OnListener {
 			@Override
 			public void onClick(View v) {
 				InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+				inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 				if (isEmpty(name) || isEmpty(email) || isEmpty(pass) || isEmpty(verify)) {
 					Toast.makeText(SignupActivity.this, "One or more fields are empty.", Toast.LENGTH_SHORT).show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
 				} else if (!isEmailValid(email.getText().toString())) {
 					Toast.makeText(SignupActivity.this, "Invalid email.", Toast.LENGTH_SHORT).show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
 				} else if (!pass.getText().toString().equals(verify.getText().toString())) {
 					Toast.makeText(SignupActivity.this, "Passwords do not match.", Toast.LENGTH_SHORT).show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
 				} else if (pass.getText().toString().length() < 6) {
 					Toast.makeText(SignupActivity.this, "Password must be at least 6 characters.", Toast.LENGTH_SHORT).show();
-					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 					return;
 				}
+				progress = new ProgressDialog(SignupActivity.this);
+				progress.setMessage("Creating account...");
+				progress.show();
 				checkEmail(email.getText().toString().toLowerCase(Locale.getDefault()));
 			}
 		});
 		initiateFragments();
 	}
 
-	private void createAcc() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+	private void createAcc() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {		
 		CloudEntity account = new CloudEntity("ERAppAccounts");
 		
 		String password = PassHash.generateStrongPasswordHash(pass.getText().toString());
@@ -264,14 +266,14 @@ public class SignupActivity extends Activity implements OnListener {
 		Intent i = new Intent(getApplicationContext(), HomeActivity.class);
 		if (settings.getBoolean("employee", false) && !approved) {
 			i = new Intent(this, LoginActivity.class);
-			InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-			inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+			progress.dismiss();
 			Toast.makeText(this, "Please wait for approval from company admin.", Toast.LENGTH_LONG).show();
 		} else {
 			SharedPreferences.Editor editor = settings.edit();
 			editor.putBoolean("logged", true);
 			editor.commit();
 		}
+		progress.dismiss();
 		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(i);
 	}

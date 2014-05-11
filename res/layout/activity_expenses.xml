@@ -79,7 +79,6 @@
 				    android:layout_width="0dp"
 				    android:layout_height="wrap_content"
 				    android:layout_weight="1"
-				    android:ems="10"
 				    android:inputType="number|text" />
 
 				<Spinner
@@ -167,18 +166,9 @@
 			    android:id="@+id/addExpenseComments"
 			    android:layout_width="match_parent"
 			    android:layout_height="wrap_content"
+			    android:layout_marginBottom="5dp"
 			    android:ems="10"
 			    android:inputType="text" />
-
-			<Button
-			    android:id="@+id/button_submit"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:layout_gravity="center"
-			    android:layout_marginBottom="10dp"
-			    android:layout_marginTop="10dp"
-			    android:onClick="onSendButtonPressed"
-			    android:text="@string/button_submit" />
 
 		</LinearLayout>
 

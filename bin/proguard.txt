@@ -44,9 +44,6 @@
 # onClick res/layout/activity_home.xml #generated:37
 -keepclassmembers class * { *** correctExpense(...); }
 
-# onClick res/layout/activity_expenses.xml #generated:173
--keepclassmembers class * { *** onSendButtonPressed(...); }
-
 # onClick res/layout/activity_login.xml #generated:9
 -keepclassmembers class * { *** signUp(...); }
 

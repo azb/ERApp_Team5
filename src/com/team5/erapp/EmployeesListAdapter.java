@@ -36,7 +36,7 @@ public class EmployeesListAdapter extends ArrayAdapter<CloudEntity> {
 			TextView name = (TextView) view.findViewById(R.id.row_name);
 			TextView email = (TextView) view.findViewById(R.id.row_email);
 			name.setText(ce.get("name").toString());
-			email.setText(ce.get("name").toString());
+			email.setText(ce.get("email").toString());
 		}
 		return view;
 	}
