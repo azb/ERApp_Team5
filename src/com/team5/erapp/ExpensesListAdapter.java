@@ -58,7 +58,7 @@ public class ExpensesListAdapter extends ArrayAdapter<CloudEntity> {
 			} else {
 				description.setText("No description");
 			}
-			date.setText(ce.getUpdatedAt().toString().substring(4, 10));
+			date.setText(ce.getCreatedAt().toString().substring(4, 10));
 		}
 		return view;
 	}

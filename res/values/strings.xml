@@ -49,9 +49,8 @@
     <string name="welcome">Welcome to ERApp. Please log in or sign up.</string>
     <string name="remove">Remove</string>
     <string name="logging">Logging in</string>
-    <string name="action_filter">Filter</string>
+    <string name="action_filter">Set filter</string>
     <string name="action_save">Save</string>
-    <string name="action_delete">Delete filtered</string>
     <string name="title_filter">Filter by:</string>
 
     <string-array name="entries_category">

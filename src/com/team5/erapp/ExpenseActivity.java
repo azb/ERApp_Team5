@@ -24,6 +24,7 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -72,10 +73,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private Uri fileUri = null;
 	private LinearLayout img;
 	private SharedPreferences settings;
-	private String toast;
-	private int length;
 	private boolean incomplete;
 	private int yy, mm, dd;
+	private ProgressDialog progress;
 
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
@@ -93,7 +93,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		setContentView(R.layout.activity_expenses);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-//		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		// getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
@@ -105,25 +105,25 @@ public class ExpenseActivity extends Activity implements OnListener {
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
-		
+
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 
 		currency.setSelection(settings.getInt("index", 7));
 		img.setBackgroundColor(Color.GRAY);
 
-//		OnClickListener hideKey = new OnClickListener() {
-//
-//			@Override
-//			public void onClick(View v) {
-//				getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-//			}
-//		};
-//		price.setOnClickListener(hideKey);
-//		merchant.setOnClickListener(hideKey);
-//		description.setOnClickListener(hideKey);
-//		comment.setOnClickListener(hideKey);
-		
+		// OnClickListener hideKey = new OnClickListener() {
+		//
+		// @Override
+		// public void onClick(View v) {
+		// getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+		// }
+		// };
+		// price.setOnClickListener(hideKey);
+		// merchant.setOnClickListener(hideKey);
+		// description.setOnClickListener(hideKey);
+		// comment.setOnClickListener(hideKey);
+
 		final Calendar c = Calendar.getInstance();
 		yy = c.get(Calendar.YEAR);
 		mm = c.get(Calendar.MONTH);
@@ -183,7 +183,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		}
 		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -194,7 +194,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 			return super.onOptionsItemSelected(item);
 		}
 	}
-	
+
 	@Override
 	public void onBackPressed() {
 		Bundle data = getIntent().getExtras();
@@ -271,7 +271,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 			Toast.makeText(this, "Nothing to submit.", Toast.LENGTH_SHORT).show();
 			return;
 		}
-
+		progress = new ProgressDialog(this);
+		progress.setMessage("Submitting...");
+		progress.show();
 		String acc = settings.getString("emailFormatted", "");
 		if (settings.getBoolean("employee", false)) {
 			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");
@@ -279,17 +281,35 @@ public class ExpenseActivity extends Activity implements OnListener {
 		CloudEntity expense = new CloudEntity("ERApp_" + acc);
 		expense = addData(expense);
 
-		toast = "Submitted";
-		length = 0;
 		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
+				Bundle data = getIntent().getExtras();
+				finish();
+				if (data.get("display").equals("correct")) {
+					Intent intent = new Intent(ExpenseActivity.this, ViewExpensesActivity.class);
+					intent.putExtra("display", "correct");
+					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					progress.dismiss();
+					startActivity(intent);
+				}
+				Handler toaster = new Handler();
+				Runnable run = new Runnable() {
+					@Override
+					public void run() {
+						Toast.makeText(ExpenseActivity.this, "Submitted", Toast.LENGTH_SHORT).show();
+					}
+				};
+				if (data.get("display").equals("correct")) {
+					toaster.postDelayed(run, 1500);
+				} else {
+					toaster.postDelayed(run, 400);
+				}
 			}
 
 			@Override
 			public void onError(final IOException exception) {
-				toast = "Unable to connect to server";
-				length = 1;
+				Toast.makeText(ExpenseActivity.this, "Unable to connect to server.", Toast.LENGTH_LONG).show();
 			}
 		};
 		Bundle data = getIntent().getExtras();
@@ -298,29 +318,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		} else {
 			mProcessingFragment.getCloudBackend().insert(expense, handler);
 		}
-
-		// return to previous activity
-		finish();
-		if (data.get("display").equals("correct")) {
-			Intent intent = new Intent(this, ViewExpensesActivity.class);
-			intent.putExtra("display", "correct");
-			intent.putExtra("delay", true);
-			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
-		}
-		Handler toaster = new Handler();
-		Runnable run = new Runnable() {
-			@Override
-			public void run() {
-				Toast.makeText(ExpenseActivity.this, toast, length).show();
-			}
-		};
-		if (data.get("display").equals("correct")) {
-			toaster.postDelayed(run, 1300);
-		} else {
-			toaster.postDelayed(run, 500);
-		}
-		
 	}
 
 	private CloudEntity addData(CloudEntity expense) {
@@ -414,7 +411,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 			setTitle("Expense");
 			if (settings.getBoolean("employee", false)) {
 				TextView name = (TextView) findViewById(R.id.view_name);
-				name.setText(settings.getString("name", ""));
+				name.setText(data.getString("name", ""));
 				name.setVisibility(View.VISIBLE);
 				name.setPadding(0, 5, 0, 5);
 			} else {

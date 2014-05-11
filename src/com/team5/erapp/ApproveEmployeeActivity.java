@@ -40,6 +40,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 	private CloudBackendFragment mProcessingFragment;
 	private CloudEntity ce;
 	private ProgressDialog progress;
+	private int delPos;
 
 	public static final String PREFS_NAME = "MyPrefsFile";
 	private SharedPreferences settings;
@@ -74,6 +75,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				ce = (CloudEntity) mEmployeesView.getItemAtPosition(position);
+				delPos = position;
 				new AlertDialog.Builder(ApproveEmployeeActivity.this).setMessage("Approve " + ce.get("name").toString() + "?")
 						.setNegativeButton(R.string.remove, new DialogInterface.OnClickListener() {
 							@Override
@@ -81,10 +83,8 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 								mProcessingFragment.getCloudBackend().delete(ce, new CloudCallbackHandler<Void>() {
 									@Override
 									public void onComplete(Void result) {
-										Intent i = getIntent();
-										finish();
-										overridePendingTransition(0, 0);
-										startActivity(i);
+										mEmployees.remove(delPos);
+										updateEmployeesView();
 									}
 
 									@Override
@@ -100,10 +100,8 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 								mProcessingFragment.getCloudBackend().update(ce, new CloudCallbackHandler<CloudEntity>() {
 									@Override
 									public void onComplete(final CloudEntity result) {
-										Intent i = getIntent();
-										finish();
-										overridePendingTransition(0, 0);
-										startActivity(i);
+										mEmployees.remove(delPos);
+										updateEmployeesView();
 									}
 
 									@Override
@@ -118,7 +116,6 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 	}
 
 	private void listEmployees() {
-		// create a response handler that will receive the result or an error
 		CloudQuery cq = new CloudQuery("ERAppAccounts");
 		cq.setFilter(Filter.and(Filter.eq("approved", false), Filter.eq("company", settings.getString("company", ""))));
 		cq.setScope(Scope.PAST);
@@ -134,7 +131,7 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 			@Override
 			public void onError(IOException exception) {
 				TextView emptyView = (TextView) findViewById(R.id.no_employees);
-				emptyView.setText("Unable to connect to server");
+				emptyView.setText("Unable to connect to server.");
 			}
 		});
 	}
@@ -143,9 +140,10 @@ public class ApproveEmployeeActivity extends Activity implements OnListener {
 		progress.dismiss();
 		TextView emptyView = (TextView) findViewById(R.id.no_employees);
 		if (!mEmployees.isEmpty()) {
-			emptyView.setVisibility(View.GONE);
+			mEmployeesView.setVisibility(View.VISIBLE);
 			mEmployeesView.setAdapter(new EmployeesListAdapter(this, android.R.layout.simple_list_item_1, mEmployees));
 		} else {
+			mEmployeesView.setVisibility(View.GONE);
 			emptyView.setText("No pending approvals");
 			emptyView.setVisibility(View.VISIBLE);
 		}

@@ -44,6 +44,7 @@
 			    android:layout_width="match_parent"
 			    android:layout_height="wrap_content"
 			    android:layout_marginBottom="5dp"
+			    android:layout_marginTop="2dp"
 			    android:gravity="center" >
 
 				<Button android:id="@+id/button_camera" style="?android:attr/buttonStyleSmall"
@@ -95,27 +96,13 @@
 
 			</LinearLayout>
 
-			<LinearLayout
-			    android:layout_width="fill_parent"
-			    android:layout_height="match_parent"
-			    android:layout_marginTop="15dp" >
-
-				<TextView
-				    android:id="@+id/textView2"
-				    android:layout_width="0dp"
-				    android:layout_height="wrap_content"
-				    android:layout_weight="1"
-				    android:text="@string/text_Merchant"
-				    android:textSize="16sp" />
-
-				<Spinner
-				    android:id="@+id/addExpenseCategory"
-				    android:layout_width="wrap_content"
-				    android:layout_height="wrap_content"
-				    android:entries="@array/entries_category"
-				    android:prompt="@string/spinner_category" />
-
-			</LinearLayout>
+			<TextView
+			    android:id="@+id/textView2"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_marginTop="15dp"
+			    android:text="@string/text_Merchant"
+			    android:textSize="16sp" />
 
 		<EditText
 			    android:id="@+id/addExpenseMerchant"
@@ -139,20 +126,55 @@
 			    android:ems="10"
 			    android:inputType="text" />
 
-			<TextView
-			    android:id="@+id/textView7"
-			    android:layout_width="wrap_content"
+			<LinearLayout
+			    android:layout_width="match_parent"
 			    android:layout_height="wrap_content"
 			    android:layout_marginTop="15dp"
-			    android:text="@string/text_date"
-			    android:textSize="16sp" />
+			    android:baselineAligned="false" >
 
-			<EditText
-			    android:id="@+id/addExpenseDate"
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content"
-			    android:hint="@string/hint_date"
-			    android:inputType="date" />
+				<LinearLayout
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:orientation="vertical" >
+
+					<TextView
+					    android:id="@+id/textView1"
+					    android:layout_width="wrap_content"
+					    android:layout_height="wrap_content"
+					    android:text="@string/text_category"
+					    android:textSize="16sp" />
+
+					<Spinner
+					    android:id="@+id/addExpenseCategory"
+					    android:layout_width="wrap_content"
+					    android:layout_height="wrap_content"
+					    android:entries="@array/entries_category"
+					    android:prompt="@string/spinner_category" />
+
+				</LinearLayout>
+
+				<LinearLayout
+				    android:layout_width="fill_parent"
+				    android:layout_height="wrap_content"
+				    android:layout_marginLeft="30dp"
+				    android:orientation="vertical" >
+
+					<TextView
+					    android:id="@+id/textView7"
+					    android:layout_width="wrap_content"
+					    android:layout_height="wrap_content"
+					    android:text="@string/text_date"
+					    android:textSize="16sp" />
+
+					<EditText
+					    android:id="@+id/addExpenseDate"
+					    android:layout_width="wrap_content"
+					    android:layout_height="wrap_content"
+					    android:inputType="date" />
+
+				</LinearLayout>
+
+			</LinearLayout>
 
 			<TextView
 			    android:id="@+id/textView6"
