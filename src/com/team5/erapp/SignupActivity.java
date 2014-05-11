@@ -19,10 +19,12 @@ import com.google.cloud.backend.core.CloudQuery.Scope;
 import com.team5.erapp.R;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -118,11 +120,11 @@ public class SignupActivity extends Activity implements OnListener {
 		initiateFragments();
 	}
 
-	private void createAcc() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {		
+	private void createAcc() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 		CloudEntity account = new CloudEntity("ERAppAccounts");
-		
+
 		String password = PassHash.generateStrongPasswordHash(pass.getText().toString());
-		
+
 		SharedPreferences.Editor editor = settings.edit();
 		String email = this.email.getText().toString().toLowerCase(Locale.getDefault());
 		editor.putString("email", email);
@@ -178,6 +180,7 @@ public class SignupActivity extends Activity implements OnListener {
 				if (!results.isEmpty()) {
 					InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 					inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+					progress.dismiss();
 					Toast.makeText(SignupActivity.this, "Email already in use.", Toast.LENGTH_SHORT).show();
 				} else if (checked && (company.getText().toString().trim().length() != 0)) {
 					checkCompany(company.getText().toString().toLowerCase(Locale.getDefault()));
@@ -266,8 +269,15 @@ public class SignupActivity extends Activity implements OnListener {
 		Intent i = new Intent(getApplicationContext(), HomeActivity.class);
 		if (settings.getBoolean("employee", false) && !approved) {
 			i = new Intent(this, LoginActivity.class);
-			progress.dismiss();
-			Toast.makeText(this, "Please wait for approval from company admin.", Toast.LENGTH_LONG).show();
+			new AlertDialog.Builder(this).setMessage("Account created. Please wait for approval from company admin.")
+					.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+						@Override
+						public void onClick(DialogInterface arg0, int arg1) {
+							progress.dismiss();
+							finish();
+						}
+					}).create().show();
+			return;
 		} else {
 			SharedPreferences.Editor editor = settings.edit();
 			editor.putBoolean("logged", true);

@@ -2,7 +2,6 @@ package com.team5.erapp;
 
 import java.io.IOException;
 import java.io.File;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import com.google.cloud.backend.android.mobilebackend.Mobilebackend.BlobEndpoint;
 import com.google.cloud.backend.core.CloudBackendFragment;
 import com.google.cloud.backend.core.CloudBackendFragment.OnListener;
 import com.google.cloud.backend.core.CloudCallbackHandler;
@@ -42,7 +40,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.provider.ContactsContract.Data;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -76,6 +73,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private boolean incomplete;
 	private int yy, mm, dd;
 	private ProgressDialog progress;
+	private BitmapDrawable drawable;
 
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
@@ -247,7 +245,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			BitmapDrawable drawable = new BitmapDrawable(this.getResources(), bitmap);
+			drawable = new BitmapDrawable(this.getResources(), bitmap);
 			if (bitmap.getHeight() > 4096 || bitmap.getWidth() > 4096) {
 				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap.getWidth()));
 				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh, true);
@@ -473,7 +471,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			BitmapDrawable drawable = new BitmapDrawable(this.getResources(), bitmap);
+			drawable = new BitmapDrawable(this.getResources(), bitmap);
 			if (bitmap.getHeight() > 4096 || bitmap.getWidth() > 4096) {
 				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap.getWidth()));
 				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh, true);

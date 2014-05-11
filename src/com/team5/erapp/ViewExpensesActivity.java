@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -27,7 +25,6 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -223,6 +220,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					} else {
 						editor.putBoolean("filtered", true);
 						editor.putString("filter", "all");
+						filtered = false;
 						updateExpenseView(mExpenses);
 					}
 					editor.commit();
@@ -460,6 +458,22 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	private void filterEx(String filter, int range, String input) {
 		filteredExpenses = new ArrayList<CloudEntity>();
 		List<Object> a = new ArrayList<Object>();
+		editor.putString("sort", "_createdAt");
+		editor.commit();
+		List<CloudEntity> dateSort = new LinkedList<CloudEntity>();
+		if (filtered) {
+			dateSort = filteredExpenses;
+		} else {
+			dateSort = mExpenses;
+		}
+		Collections.sort(dateSort, new Comparator<CloudEntity>() {
+			@Override
+			public int compare(CloudEntity ce1, CloudEntity ce2) {
+				return ce1.getCreatedAt().compareTo(ce2.getCreatedAt());
+			}
+		});
+		Collections.reverse(dateSort);
+		this.invalidateOptionsMenu();
 		for (CloudEntity ce : mExpenses) {
 			a = (ArrayList<Object>) ce.get("ex");
 			String date = a.get(3).toString();
@@ -474,7 +488,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				}
 			} else if (filter.equals("previous year")) {
 				if (Integer.parseInt(date.substring(date.length() - 4, date.length())) == Calendar.getInstance().get(
-						Calendar.YEAR - 1)) {
+						Calendar.YEAR) - 1) {
 					filteredExpenses.add(ce);
 				}
 			} else if (filter.equals("employee")) {

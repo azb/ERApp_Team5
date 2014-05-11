@@ -31,7 +31,7 @@ public final class R {
     public static final class id {
         public static final int AddExpensesImageBackground=0x7f090006;
         public static final int LinearLayout1=0x7f090005;
-        public static final int RelativeLayout1=0x7f09001b;
+        public static final int RelativeLayout1=0x7f09001f;
         public static final int ScrollView1=0x7f090008;
         public static final int action_export=0x7f090034;
         public static final int action_filter=0x7f090033;
@@ -50,10 +50,10 @@ public final class R {
         public static final int addExpensePrice=0x7f09000e;
         public static final int addExpense_imageSelect=0x7f090009;
         public static final int addExpense_price=0x7f09000d;
-        public static final int buttonLogin=0x7f09001d;
-        public static final int buttonSignup=0x7f09001e;
-        public static final int button_add=0x7f09001c;
-        public static final int button_addEmployee=0x7f09001f;
+        public static final int buttonLogin=0x7f09001c;
+        public static final int buttonSignup=0x7f09001d;
+        public static final int button_add=0x7f09001b;
+        public static final int button_addEmployee=0x7f09001e;
         public static final int button_camera=0x7f09000a;
         public static final int button_gallery=0x7f09000b;
         public static final int checkBox1=0x7f090029;
