@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -335,6 +334,11 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				i.putExtra("category", ab.get(10).toString());
 				i.putExtra("payment", ab.get(8).toString());
 				i.putExtra("name", ce.get("name").toString());
+				i.putExtra("hasPic", false);
+				if (ce.get("pic") != null) {
+					i.putExtra("pic", ce.get("pic").toString());
+					i.putExtra("hasPic", true);
+				}
 				startActivity(i);
 			}
 		});
@@ -445,6 +449,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			mExpensesView.setAdapter(new ExpensesListAdapter(this, android.R.layout.simple_list_item_1, expenses));
 		} else if (data.get("display").equals("correct")) {
 			progress.dismiss();
+			mExpensesView.setVisibility(View.GONE);
 			emptyView.setText("No expenses to correct");
 			emptyView.setVisibility(View.VISIBLE);
 		} else {

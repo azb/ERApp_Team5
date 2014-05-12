@@ -1,7 +1,9 @@
 package com.team5.erapp;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.File;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,9 +16,13 @@ import com.google.cloud.backend.core.CloudBackendFragment;
 import com.google.cloud.backend.core.CloudBackendFragment.OnListener;
 import com.google.cloud.backend.core.CloudCallbackHandler;
 import com.google.cloud.backend.core.CloudEntity;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseFile;
+import com.parse.ParseObject;
+import com.parse.SaveCallback;
 import com.team5.erapp.R;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -36,6 +42,7 @@ import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -84,7 +91,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQ = 0;
 	private static final int SELECT_IMAGE = 1;
 
-	@SuppressLint("NewApi")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -92,6 +98,12 @@ public class ExpenseActivity extends Activity implements OnListener {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 		// getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+		try {
+			Parse.initialize(this, "DxsXMcykQ0jThdynBEy9q5XSvtUTmY3WlP5xT9Sx", "eu32sP9NhFj2M6QCsi4i8MpylIVwWMxcxYEzFeA4");
+		} catch (Exception ex) {
+
+		}
 
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
 		price = (EditText) findViewById(R.id.addExpensePrice);
@@ -277,12 +289,13 @@ public class ExpenseActivity extends Activity implements OnListener {
 			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");
 		}
 		CloudEntity expense = new CloudEntity("ERApp_" + acc);
-		expense = addData(expense);
+		final CloudEntity aexpense = addData(expense);
 
-		CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
+		final CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
 				Bundle data = getIntent().getExtras();
+				progress.dismiss();
 				finish();
 				if (data.get("display").equals("correct")) {
 					Intent intent = new Intent(ExpenseActivity.this, ViewExpensesActivity.class);
@@ -310,11 +323,41 @@ public class ExpenseActivity extends Activity implements OnListener {
 				Toast.makeText(ExpenseActivity.this, "Unable to connect to server.", Toast.LENGTH_LONG).show();
 			}
 		};
-		Bundle data = getIntent().getExtras();
-		if (data.getBoolean("correct") && !incomplete) {
-			mProcessingFragment.getCloudBackend().update(expense, handler);
+		if (photoImage.getDrawable() != null) {
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			Bitmap bitmap = drawable.getBitmap();
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 30, stream);
+			byte[] image = stream.toByteArray();
+
+			final ParseFile file = new ParseFile("receipt.jpeg", image);
+
+			file.saveInBackground();
+			ParseObject ex = new ParseObject("Expns_" + acc);
+			ex.put("pic", file);
+			ex.saveInBackground(new SaveCallback() {
+
+				@Override
+				public void done(ParseException e) {
+					if (e == null) {
+						Bundle data = getIntent().getExtras();
+						aexpense.put("pic", file.getUrl());
+						if (data.getBoolean("correct") && !incomplete) {
+							mProcessingFragment.getCloudBackend().update(aexpense, handler);
+						} else {
+							mProcessingFragment.getCloudBackend().insert(aexpense, handler);
+						}
+					} else {
+						Toast.makeText(getApplicationContext(), "Error uploading picture.", Toast.LENGTH_LONG).show();
+					}
+				}
+			});
 		} else {
-			mProcessingFragment.getCloudBackend().insert(expense, handler);
+			Bundle data = getIntent().getExtras();
+			if (data.getBoolean("correct") && !incomplete) {
+				mProcessingFragment.getCloudBackend().update(expense, handler);
+			} else {
+				mProcessingFragment.getCloudBackend().insert(expense, handler);
+			}
 		}
 	}
 
@@ -404,6 +447,11 @@ public class ExpenseActivity extends Activity implements OnListener {
 		currency.setSelection((int) Double.parseDouble(data.get("currency").toString()));
 		category.setSelection((int) Double.parseDouble(data.get("category").toString()));
 		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
+
+		if (data.getBoolean("hasPic")) {
+			new DownloadImageTask(photoImage).execute(data.getString("pic"));
+			img.setBackgroundColor(Color.TRANSPARENT);
+		}
 
 		if (data.get("display").equals("view")) {
 			setTitle("Expense");
@@ -497,5 +545,30 @@ public class ExpenseActivity extends Activity implements OnListener {
 	 */
 	@Override
 	public void onBroadcastMessageReceived(List<CloudEntity> l) {
+	}
+
+	private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+		ImageView bmImage;
+
+		public DownloadImageTask(ImageView bmImage) {
+			this.bmImage = bmImage;
+		}
+
+		protected Bitmap doInBackground(String... urls) {
+			String urldisplay = urls[0];
+			Bitmap mIcon11 = null;
+			try {
+				InputStream in = new java.net.URL(urldisplay).openStream();
+				mIcon11 = BitmapFactory.decodeStream(in);
+			} catch (Exception e) {
+				Log.e("Error", e.getMessage());
+				e.printStackTrace();
+			}
+			return mIcon11;
+		}
+
+		protected void onPostExecute(Bitmap result) {
+			bmImage.setImageBitmap(result);
+		}
 	}
 }

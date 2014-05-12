@@ -1,12 +1,8 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/LinearLayout1"
+    android:id="@+id/RelativeLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginBottom="20dp"
-    android:layout_marginLeft="30dp"
-    android:layout_marginRight="30dp"
-    android:layout_marginTop="40dp"
     android:gravity="center"
     android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
@@ -17,42 +13,48 @@
 
     <Button
         android:id="@+id/button_add"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="225dp"
+        android:layout_height="80dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginBottom="20dp"
-        android:layout_weight="25"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="25dp"
         android:onClick="addExpense"
         android:text="@string/button_add" />
 
     <Button
         android:id="@+id/buttonLogin"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="225dp"
+        android:layout_height="80dp"
+        android:layout_below="@+id/button_add"
+        android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginBottom="20dp"
-        android:layout_weight="25"
+        android:layout_margin="10dp"
         android:onClick="viewExpense"
         android:text="@string/button_view" />
 
     <Button
         android:id="@+id/buttonSignup"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="225dp"
+        android:layout_height="80dp"
+        android:layout_below="@+id/buttonLogin"
+        android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginBottom="20dp"
-        android:layout_weight="25"
+        android:layout_margin="10dp"
         android:onClick="correctExpense"
         android:text="@string/button_correction" />
 
     <Button
         android:id="@+id/button_addEmployee"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="225dp"
+        android:layout_height="80dp"
+        android:layout_below="@+id/buttonSignup"
+        android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginBottom="20dp"
-        android:layout_weight="25"
+        android:layout_marginBottom="25dp"
+        android:layout_marginTop="10dp"
         android:onClick="addEmployee"
         android:text="@string/button_addEmployee" />
 
-</LinearLayout>
+</RelativeLayout>
