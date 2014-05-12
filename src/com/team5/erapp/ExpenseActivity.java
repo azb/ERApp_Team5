@@ -325,7 +325,8 @@ public class ExpenseActivity extends Activity implements OnListener {
 		};
 		if (photoImage.getDrawable() != null) {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			Bitmap bitmap = drawable.getBitmap();
+			BitmapDrawable d = (BitmapDrawable) photoImage.getDrawable();
+			Bitmap bitmap = d.getBitmap();
 			bitmap.compress(Bitmap.CompressFormat.JPEG, 25, stream);
 			byte[] image = stream.toByteArray();
 
