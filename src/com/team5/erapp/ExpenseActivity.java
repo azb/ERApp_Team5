@@ -115,7 +115,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
-
+		
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 
@@ -326,7 +326,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		if (photoImage.getDrawable() != null) {
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			Bitmap bitmap = drawable.getBitmap();
-			bitmap.compress(Bitmap.CompressFormat.JPEG, 30, stream);
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 25, stream);
 			byte[] image = stream.toByteArray();
 
 			final ParseFile file = new ParseFile("receipt.jpeg", image);
@@ -449,8 +449,8 @@ public class ExpenseActivity extends Activity implements OnListener {
 		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
 
 		if (data.getBoolean("hasPic")) {
-			new DownloadImageTask(photoImage).execute(data.getString("pic"));
 			img.setBackgroundColor(Color.TRANSPARENT);
+			new DownloadImageTask(photoImage).execute(data.getString("pic"));
 		}
 
 		if (data.get("display").equals("view")) {
