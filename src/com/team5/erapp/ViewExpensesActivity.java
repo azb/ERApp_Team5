@@ -324,6 +324,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				}
 				@SuppressWarnings("unchecked")
 				List<Object> ab = (ArrayList<Object>) ce.get("ex");
+				i.putExtra("id", ce.getId());
 				i.putExtra("expense", ce);
 				i.putExtra("price", ab.get(0).toString());
 				i.putExtra("merchant", ab.get(1).toString());

@@ -26,3 +26,5 @@
 
 # added to prevent errors on exporting .apk (kazsato)
 #-libraryjars ./libs/google-play-services.jar
+-dontwarn com.parse.**
+-dontwarn com.google.android.gms.**

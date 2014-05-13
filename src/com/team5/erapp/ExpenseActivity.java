@@ -37,7 +37,6 @@ import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.ExifInterface;
@@ -83,8 +82,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private int yy, mm, dd;
 	private ProgressDialog progress;
 	private BitmapDrawable drawable;
-	private boolean newPhoto;
+	private boolean newPhoto = false;
 	private Bundle data;
+	private CloudEntity expense;
 
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
@@ -105,7 +105,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		try {
 			Parse.initialize(this, "DxsXMcykQ0jThdynBEy9q5XSvtUTmY3WlP5xT9Sx", "eu32sP9NhFj2M6QCsi4i8MpylIVwWMxcxYEzFeA4");
 		} catch (Exception ex) {
-
 		}
 
 		photoImage = (TouchImageView) findViewById(R.id.imageView1);
@@ -294,13 +293,13 @@ public class ExpenseActivity extends Activity implements OnListener {
 		if (settings.getBoolean("employee", false)) {
 			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");
 		}
-		CloudEntity expense = new CloudEntity("ERApp_" + acc);
-		final CloudEntity aexpense = addData(expense);
+		expense = new CloudEntity("ERApp_" + acc);
+		expense = addData(expense);
 
 		final CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
-				progress.dismiss();
+				Bundle data = getIntent().getExtras();
 				finish();
 				if (data.get("display").equals("correct")) {
 					Intent intent = new Intent(ExpenseActivity.this, ViewExpensesActivity.class);
@@ -330,31 +329,32 @@ public class ExpenseActivity extends Activity implements OnListener {
 		};
 		if (photoImage.getDrawable() != null) {
 			if (data.get("display").equals("correct") && !newPhoto) {
-				return;
-			}
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			BitmapDrawable d = (BitmapDrawable) photoImage.getDrawable();
-			Bitmap bitmap = d.getBitmap();
-			bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
-			byte[] image = stream.toByteArray();
+				mProcessingFragment.getCloudBackend().insert(expense, handler);
+			} else {
+				ByteArrayOutputStream stream = new ByteArrayOutputStream();
+				BitmapDrawable d = (BitmapDrawable) photoImage.getDrawable();
+				Bitmap bitmap = d.getBitmap();
+				bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+				byte[] image = stream.toByteArray();
 
-			final ParseFile file = new ParseFile("receipt.jpeg", image);
+				final ParseFile file = new ParseFile("receipt.jpeg", image);
 
-			file.saveInBackground();
-			ParseObject ex = new ParseObject("Expns_" + acc);
-			ex.put("pic", file);
-			ex.saveInBackground(new SaveCallback() {
+				file.saveInBackground();
+				ParseObject ex = new ParseObject("Expns_" + acc);
+				ex.put("pic", file);
+				ex.saveInBackground(new SaveCallback() {
 
-				@Override
-				public void done(ParseException e) {
-					if (e == null) {
-						aexpense.put("pic", file.getUrl());
-						mProcessingFragment.getCloudBackend().insert(aexpense, handler);
-					} else {
-						Toast.makeText(getApplicationContext(), "Error uploading picture.", Toast.LENGTH_LONG).show();
+					@Override
+					public void done(ParseException e) {
+						if (e == null) {
+							expense.put("pic", file.getUrl());
+							mProcessingFragment.getCloudBackend().insert(expense, handler);
+						} else {
+							Toast.makeText(getApplicationContext(), "Error uploading picture.", Toast.LENGTH_LONG).show();
+						}
 					}
-				}
-			});
+				});
+			}
 		} else {
 			mProcessingFragment.getCloudBackend().insert(expense, handler);
 		}
@@ -369,10 +369,10 @@ public class ExpenseActivity extends Activity implements OnListener {
 	 */
 	private CloudEntity addData(CloudEntity expense) {
 		// use selected CloudEntity if correcting
-		expense.put("correctable", true);
 		if (data.get("display").equals("correct")) {
 			expense = data.getParcelable("expense");
 		}
+		expense.put("correctable", true);
 		List<Object> list = new ArrayList<Object>();
 		incomplete = false;
 		if (isEmpty(price)) {
