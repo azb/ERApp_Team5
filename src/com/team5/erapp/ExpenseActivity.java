@@ -118,7 +118,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 		category = (Spinner) findViewById(R.id.addExpenseCategory);
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
-		
+
 		data = getIntent().getExtras();
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
@@ -349,28 +349,22 @@ public class ExpenseActivity extends Activity implements OnListener {
 				public void done(ParseException e) {
 					if (e == null) {
 						aexpense.put("pic", file.getUrl());
-						if (data.get("display").equals("correct")) {
-							mProcessingFragment.getCloudBackend().update(aexpense, handler);
-						} else {
-							mProcessingFragment.getCloudBackend().insert(aexpense, handler);
-						}
+						mProcessingFragment.getCloudBackend().insert(aexpense, handler);
 					} else {
 						Toast.makeText(getApplicationContext(), "Error uploading picture.", Toast.LENGTH_LONG).show();
 					}
 				}
 			});
 		} else {
-			if (data.get("display").equals("correct")) {
-				mProcessingFragment.getCloudBackend().update(expense, handler);
-			} else {
-				mProcessingFragment.getCloudBackend().insert(expense, handler);
-			}
+			mProcessingFragment.getCloudBackend().insert(expense, handler);
 		}
 	}
 
 	/**
 	 * Adds user inputs to an arraylist.
-	 * @param expense CE to upload
+	 * 
+	 * @param expense
+	 *            CE to upload
 	 * @return CE to upload
 	 */
 	private CloudEntity addData(CloudEntity expense) {
