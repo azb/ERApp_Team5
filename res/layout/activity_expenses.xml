@@ -31,7 +31,6 @@
 	    android:id="@+id/ScrollView1"
 	    android:layout_width="match_parent"
 	    android:layout_height="0dp"
-	    android:layout_marginTop="5dp"
 	    android:layout_weight="54" >
 
 		<LinearLayout
@@ -49,9 +48,13 @@
 			    android:layout_marginTop="2dp"
 			    android:gravity="center" >
 
-				<Button android:id="@+id/button_camera" style="?android:attr/buttonStyleSmall"
-					android:layout_width="wrap_content" android:layout_height="wrap_content"
-					android:layout_marginRight="15dp" android:text="@string/button_camera" />
+				<Button
+				    android:id="@+id/button_camera"
+				    style="?android:attr/buttonStyleSmall"
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:layout_marginRight="20dp"
+				    android:text="@string/button_camera" />
 
 				<Button android:id="@+id/button_gallery" style="?android:attr/buttonStyleSmall"
 					android:layout_width="wrap_content" android:layout_height="wrap_content"

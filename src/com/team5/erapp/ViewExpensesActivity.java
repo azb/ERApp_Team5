@@ -87,7 +87,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		settings = getSharedPreferences(PREFS_NAME, 0);
 		data = getIntent().getExtras();
 		editor = settings.edit();
-
+		
 		initializeView();
 
 		progress = new ProgressDialog(this);
@@ -258,11 +258,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 						});
 						builder2.create().show();
 					} else if (type.equals("Current year")) {
-						int year = Calendar.getInstance().get(Calendar.YEAR);
-						createCSV(Integer.toString(year), "year");
+						createCSV(Integer.toString(Calendar.getInstance().get(Calendar.YEAR)), "year");
 					} else if (type.equals("Previous year")) {
-						int year = Calendar.getInstance().get(Calendar.YEAR);
-						createCSV(Integer.toString(year - 1), "year");
+						createCSV(Integer.toString(Calendar.getInstance().get(Calendar.YEAR) - 1), "year");
 					} else if (type.equals("Employee")) {
 						AlertDialog.Builder builder3 = new AlertDialog.Builder(ViewExpensesActivity.this);
 						builder3.setMessage("Enter employee's email:");
@@ -401,7 +399,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		}
 		if (data.get("display").equals("view")) {
 			mProcessingFragment.getCloudBackend().listByKind("ERApp_" + acc, settings.getString("sort", "_createdAt"),
-					Order.DESC, 10000, Scope.PAST, handler);
+					Order.DESC, 5000, Scope.PAST, handler);
 		} else if (data.get("display").equals("correct")) {
 			CloudQuery cq = new CloudQuery("ERApp_" + acc);
 			if (!settings.getBoolean("admin", false)) {
@@ -483,7 +481,8 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			a = (ArrayList<Object>) ce.get("ex");
 			String date = a.get(3).toString();
 			if (filter.equals("month")) {
-				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == range + 1) {
+				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == range + 1 && Integer.parseInt(date.substring(date.length() - 4, date.length())) == Calendar.getInstance().get(
+						Calendar.YEAR)) {
 					filteredExpenses.add(ce);
 				}
 			} else if (filter.equals("current year")) {

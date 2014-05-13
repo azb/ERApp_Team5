@@ -50,8 +50,10 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.inputmethod.InputMethodManager;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -81,6 +83,8 @@ public class ExpenseActivity extends Activity implements OnListener {
 	private int yy, mm, dd;
 	private ProgressDialog progress;
 	private BitmapDrawable drawable;
+	private boolean newPhoto;
+	private Bundle data;
 
 	private CloudBackendFragment mProcessingFragment;
 	private FragmentManager mFragmentManager;
@@ -97,7 +101,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		setContentView(R.layout.activity_expenses);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-		// getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		try {
 			Parse.initialize(this, "DxsXMcykQ0jThdynBEy9q5XSvtUTmY3WlP5xT9Sx", "eu32sP9NhFj2M6QCsi4i8MpylIVwWMxcxYEzFeA4");
@@ -116,23 +119,28 @@ public class ExpenseActivity extends Activity implements OnListener {
 		payment = (Spinner) findViewById(R.id.addExpensePayment);
 		img = (LinearLayout) findViewById(R.id.AddExpensesImageBackground);
 		
+		data = getIntent().getExtras();
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 
 		currency.setSelection(settings.getInt("index", 7));
-		img.setBackgroundColor(Color.GRAY);
+		img.setBackgroundColor(0xffa9a9a8);
 
-		// OnClickListener hideKey = new OnClickListener() {
-		//
-		// @Override
-		// public void onClick(View v) {
-		// getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-		// }
-		// };
-		// price.setOnClickListener(hideKey);
-		// merchant.setOnClickListener(hideKey);
-		// description.setOnClickListener(hideKey);
-		// comment.setOnClickListener(hideKey);
+		OnTouchListener reset = new OnTouchListener() {
+
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if (photoImage.getDrawable() != null && !data.get("display").equals("view")) {
+					photoImage.maintainZoomAfterSetImage(true);
+					photoImage.setImageDrawable(photoImage.getDrawable());
+				}
+				return false;
+			}
+		};
+		price.setOnTouchListener(reset);
+		merchant.setOnTouchListener(reset);
+		description.setOnTouchListener(reset);
+		comment.setOnTouchListener(reset);
 
 		final Calendar c = Calendar.getInstance();
 		yy = c.get(Calendar.YEAR);
@@ -176,8 +184,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 				startActivityForResult(i, SELECT_IMAGE);
 			}
 		});
-
-		Bundle data = getIntent().getExtras();
 		if (data.get("display").equals("view") || data.get("display").equals("correct")) {
 			setTitle("Correct Expense");
 			setInputs();
@@ -187,7 +193,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		Bundle data = getIntent().getExtras();
 		if (!data.get("display").equals("view")) {
 			getMenuInflater().inflate(R.menu.save, menu);
 		}
@@ -207,7 +212,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 
 	@Override
 	public void onBackPressed() {
-		Bundle data = getIntent().getExtras();
 		if ((!price.getText().toString().isEmpty() || !merchant.getText().toString().isEmpty()
 				|| !description.getText().toString().isEmpty() || !comment.getText().toString().isEmpty())
 				&& !data.get("display").equals("view") && !data.get("display").equals("correct")) {
@@ -258,16 +262,18 @@ public class ExpenseActivity extends Activity implements OnListener {
 				e.printStackTrace();
 			}
 			drawable = new BitmapDrawable(this.getResources(), bitmap);
-			if (bitmap.getHeight() > 4096 || bitmap.getWidth() > 4096) {
-				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap.getWidth()));
-				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh, true);
+			if (bitmap.getHeight() > 1024 || bitmap.getWidth() > 1024) {
+				int nh = (int) (bitmap.getHeight() * (512.0 / bitmap.getWidth()));
+				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 512, nh, true);
 				drawable = new BitmapDrawable(this.getResources(), scaled);
 			} else {
 				drawable = new BitmapDrawable(this.getResources(), bitmap);
 			}
 			photoImage.setScaleType(ImageView.ScaleType.MATRIX);
 			photoImage.setImageDrawable(drawable);
-			img.setBackgroundColor(Color.TRANSPARENT);
+			if (this.data.get("display").equals("correct")) {
+				newPhoto = true;
+			}
 		}
 	}
 
@@ -277,7 +283,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 	public void onSaveButtonPressed() {
 		InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-		if (isEmpty(price) && isEmpty(merchant) && isEmpty(description) && isEmpty(comment)) {
+		if (photoImage.getDrawable() == null && isEmpty(price) && isEmpty(merchant) && isEmpty(description) && isEmpty(comment)) {
 			Toast.makeText(this, "Nothing to submit.", Toast.LENGTH_SHORT).show();
 			return;
 		}
@@ -294,7 +300,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		final CloudCallbackHandler<CloudEntity> handler = new CloudCallbackHandler<CloudEntity>() {
 			@Override
 			public void onComplete(final CloudEntity result) {
-				Bundle data = getIntent().getExtras();
 				progress.dismiss();
 				finish();
 				if (data.get("display").equals("correct")) {
@@ -324,10 +329,13 @@ public class ExpenseActivity extends Activity implements OnListener {
 			}
 		};
 		if (photoImage.getDrawable() != null) {
+			if (data.get("display").equals("correct") && !newPhoto) {
+				return;
+			}
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
 			BitmapDrawable d = (BitmapDrawable) photoImage.getDrawable();
 			Bitmap bitmap = d.getBitmap();
-			bitmap.compress(Bitmap.CompressFormat.JPEG, 25, stream);
+			bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
 			byte[] image = stream.toByteArray();
 
 			final ParseFile file = new ParseFile("receipt.jpeg", image);
@@ -340,9 +348,8 @@ public class ExpenseActivity extends Activity implements OnListener {
 				@Override
 				public void done(ParseException e) {
 					if (e == null) {
-						Bundle data = getIntent().getExtras();
 						aexpense.put("pic", file.getUrl());
-						if (data.getBoolean("correct") && !incomplete) {
+						if (data.get("display").equals("correct")) {
 							mProcessingFragment.getCloudBackend().update(aexpense, handler);
 						} else {
 							mProcessingFragment.getCloudBackend().insert(aexpense, handler);
@@ -353,8 +360,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 				}
 			});
 		} else {
-			Bundle data = getIntent().getExtras();
-			if (data.getBoolean("correct") && !incomplete) {
+			if (data.get("display").equals("correct")) {
 				mProcessingFragment.getCloudBackend().update(expense, handler);
 			} else {
 				mProcessingFragment.getCloudBackend().insert(expense, handler);
@@ -362,9 +368,13 @@ public class ExpenseActivity extends Activity implements OnListener {
 		}
 	}
 
+	/**
+	 * Adds user inputs to an arraylist.
+	 * @param expense CE to upload
+	 * @return CE to upload
+	 */
 	private CloudEntity addData(CloudEntity expense) {
 		// use selected CloudEntity if correcting
-		Bundle data = getIntent().getExtras();
 		expense.put("correctable", true);
 		if (data.get("display").equals("correct")) {
 			expense = data.getParcelable("expense");
@@ -405,6 +415,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 		if (category.getSelectedItem().toString().equals("Category")) {
 			incomplete = true;
 		}
+		if (photoImage.getDrawable() == null) {
+			incomplete = true;
+		}
 		list.add(currency.getSelectedItem().toString());
 		list.add(currency.getSelectedItemPosition());
 		list.add(payment.getSelectedItem().toString());
@@ -432,7 +445,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 	 * Sets existing data into fields if correcting or viewing an expense.
 	 */
 	private void setInputs() {
-		Bundle data = getIntent().getExtras();
 		if (data.get("price").toString().equals("-1.0")) {
 			price.setText("");
 		} else {
@@ -450,7 +462,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
 
 		if (data.getBoolean("hasPic")) {
-			img.setBackgroundColor(Color.TRANSPARENT);
 			new DownloadImageTask(photoImage).execute(data.getString("pic"));
 		}
 
@@ -460,7 +471,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 				TextView name = (TextView) findViewById(R.id.view_name);
 				name.setText(data.getString("name", ""));
 				name.setVisibility(View.VISIBLE);
-				name.setPadding(0, 5, 0, 5);
+				name.setPadding(0, 10, 0, 10);
 			} else {
 				TextView priceText = (TextView) findViewById(R.id.addExpense_price);
 				priceText.setPadding(0, 15, 0, 0);
@@ -521,16 +532,18 @@ public class ExpenseActivity extends Activity implements OnListener {
 				e.printStackTrace();
 			}
 			drawable = new BitmapDrawable(this.getResources(), bitmap);
-			if (bitmap.getHeight() > 4096 || bitmap.getWidth() > 4096) {
-				int nh = (int) (bitmap.getHeight() * (2048.0 / bitmap.getWidth()));
-				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 2048, nh, true);
+			if (bitmap.getHeight() > 1024 || bitmap.getWidth() > 1024) {
+				int nh = (int) (bitmap.getHeight() * (512.0 / bitmap.getWidth()));
+				Bitmap scaled = Bitmap.createScaledBitmap(bitmap, 512, nh, true);
 				drawable = new BitmapDrawable(this.getResources(), scaled);
 			} else {
 				drawable = new BitmapDrawable(this.getResources(), bitmap);
 			}
 			photoImage.setScaleType(ImageView.ScaleType.MATRIX);
 			photoImage.setImageDrawable(drawable);
-			img.setBackgroundColor(Color.TRANSPARENT);
+			if (this.data.get("display").equals("correct")) {
+				newPhoto = true;
+			}
 		}
 	}
 

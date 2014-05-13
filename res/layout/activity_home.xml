@@ -13,47 +13,47 @@
 
     <Button
         android:id="@+id/button_add"
-        android:layout_width="225dp"
-        android:layout_height="80dp"
+        android:layout_width="250dp"
+        android:layout_height="90dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginBottom="10dp"
-        android:layout_marginTop="25dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="23dp"
         android:onClick="addExpense"
         android:text="@string/button_add" />
 
     <Button
         android:id="@+id/buttonLogin"
-        android:layout_width="225dp"
-        android:layout_height="80dp"
+        android:layout_width="250dp"
+        android:layout_height="90dp"
         android:layout_below="@+id/button_add"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_margin="10dp"
+        android:layout_margin="8dp"
         android:onClick="viewExpense"
         android:text="@string/button_view" />
 
     <Button
         android:id="@+id/buttonSignup"
-        android:layout_width="225dp"
-        android:layout_height="80dp"
+        android:layout_width="250dp"
+        android:layout_height="90dp"
         android:layout_below="@+id/buttonLogin"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_margin="10dp"
+        android:layout_margin="8dp"
         android:onClick="correctExpense"
         android:text="@string/button_correction" />
 
     <Button
         android:id="@+id/button_addEmployee"
-        android:layout_width="225dp"
-        android:layout_height="80dp"
+        android:layout_width="250dp"
+        android:layout_height="90dp"
         android:layout_below="@+id/buttonSignup"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginBottom="25dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginBottom="23dp"
+        android:layout_marginTop="8dp"
         android:onClick="addEmployee"
         android:text="@string/button_addEmployee" />
 
