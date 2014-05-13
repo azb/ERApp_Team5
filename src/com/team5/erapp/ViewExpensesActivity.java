@@ -58,12 +58,13 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	private Bundle data;
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
-	private ProgressDialog progress;
+	private static ProgressDialog progress;
 	private CloudEntity ce;
 	private Boolean filtered = false;
 	private int delPos;
 	private SharedPreferences.Editor editor;
 	private Boolean open = true;
+	private String str1;
 
 	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
 	public static final String PREFS_NAME = "MyPrefsFile";
@@ -87,7 +88,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		settings = getSharedPreferences(PREFS_NAME, 0);
 		data = getIntent().getExtras();
 		editor = settings.edit();
-		
+
 		initializeView();
 
 		progress = new ProgressDialog(this);
@@ -240,6 +241,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
+					progress.show();
 					String type = "";
 					if (settings.getBoolean("admin", false)) {
 						type = items4[which].toString();
@@ -269,7 +271,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 						builder3.setView(input);
 						builder3.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {
-								createCSV(input.getText().toString(), "employee");
+								createCSV(input.getText().toString().toLowerCase(Locale.getDefault()), "employee");
 							}
 						});
 						builder3.setNegativeButton("Cancel", null);
@@ -481,8 +483,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			a = (ArrayList<Object>) ce.get("ex");
 			String date = a.get(3).toString();
 			if (filter.equals("month")) {
-				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == range + 1 && Integer.parseInt(date.substring(date.length() - 4, date.length())) == Calendar.getInstance().get(
-						Calendar.YEAR)) {
+				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == range + 1
+						&& Integer.parseInt(date.substring(date.length() - 4, date.length())) == Calendar.getInstance().get(
+								Calendar.YEAR)) {
 					filteredExpenses.add(ce);
 				}
 			} else if (filter.equals("current year")) {
@@ -515,73 +518,71 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 *            Type of category: all, month, or year
 	 */
 	private void createCSV(String range, String type) {
-		String str1 = "Price,Currency,Payment,Merchant,Category,Date,Description,Comments\n";
-		str1 = setRange(str1, range, type);
-		final Calendar c = Calendar.getInstance();
-		int yy = c.get(Calendar.YEAR);
-		int mm = c.get(Calendar.MONTH);
-		int dd = c.get(Calendar.DAY_OF_MONTH);
-		int hh = c.get(Calendar.HOUR);
-		int ii = c.get(Calendar.MINUTE);
-		int ss = c.get(Calendar.SECOND);
-		String curTime = String.format(Locale.getDefault(), "%02d-%02d-%02d", hh, ii, ss);
-		String date = new StringBuilder().append(yy).append("-").append(mm + 1).append("-").append(dd).append("_")
-				.append(curTime).toString();
-		writeFileOnSDCard(str1, getBaseContext(), "ERApp" + "_" + date + ".csv");
+		if (type.equals("all")) {
+			if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
+				getCSVExpenses("allEmp", settings.getString("email", ""));
+			} else {
+				getCSVExpenses("all", settings.getString("email", ""));
+			}
+		} else if (type.equals("year")) {
+			getCSVExpenses("year", range);
+		} else if (type.equals("month")) {
+			getCSVExpenses("month", range);
+		} else if (type.equals("employee")) {
+			getCSVExpenses("employee", range);
+		}
 	}
 
-	/**
-	 * Sets the category range.
-	 * 
-	 * @param str1
-	 *            CSV string
-	 * @param range
-	 *            Range such as January, February, 2014, etc.
-	 * @param type
-	 *            Type of category: all, month, or year
-	 * @return A String containing expense data from chosen range.
-	 */
-	@SuppressWarnings("unchecked")
-	private String setRange(String str1, String range, String type) {
-		List<Object> a = new ArrayList<Object>();
-		for (CloudEntity ce : mExpenses) {
-			a = (ArrayList<Object>) ce.get("ex");
-			String date = a.get(3).toString();
-			if (type.equals("all")) {
-				if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
-					if (ce.getCreatedBy().toString().equals(settings.getString("email", ""))) {
-						str1 = appendEx(str1, a);
-					}
-				} else {
-					str1 = appendEx(str1, a);
-				}
-			} else if (type.equals("year")) {
-				if (date.substring(date.length() - 4, date.length()).equals(range)) {
-					if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
-						if (ce.getCreatedBy().toString().equals(settings.getString("email", ""))) {
-							str1 = appendEx(str1, a);
-						}
-					} else {
-						str1 = appendEx(str1, a);
-					}
-				}
-			} else if (type.equals("month")) {
-				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == Integer.parseInt(range)) {
-					if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
-						if (ce.getCreatedBy().toString().equals(settings.getString("email", ""))) {
-							str1 = appendEx(str1, a);
-						}
-					} else {
-						str1 = appendEx(str1, a);
-					}
-				}
-			} else if (type.equals("employee")) {
-				if (ce.getCreatedBy().toString().equalsIgnoreCase(range)) {
-					str1 = appendEx(str1, a);
-				}
-			}
+	private void getCSVExpenses(final String type, final String range) {
+		String acc = settings.getString("emailFormatted", "");
+		if (settings.getBoolean("employee", false)) {
+			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");
 		}
-		return str1;
+		CloudQuery cq = new CloudQuery("ERApp_" + acc);
+		if (type.equals("allEmp")) {
+			cq.setFilter(Filter.eq("_createdBy", range));
+		} else if (type.equals("year")) {
+			if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
+				cq.setFilter(Filter.and(Filter.in("year", range), Filter.eq("_createdBy", settings.getString("email", ""))));
+			} else {
+				cq.setFilter(Filter.in("year", range));
+			}
+		} else if (type.equals("month")) {
+			if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
+				cq.setFilter(Filter.and(Filter.eq("month", range), Filter.eq("_createdBy", settings.getString("email", "")),
+						Filter.in("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)))));
+			} else {
+				cq.setFilter(Filter.and(Filter.eq("month", range),
+						Filter.in("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)))));
+			}
+		} else if (type.equals("employee")) {
+			cq.setFilter(Filter.and(Filter.eq("_createdBy", range),
+					Filter.in("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)))));
+		}
+		cq.setScope(Scope.PAST);
+		mProcessingFragment.getCloudBackend().list(cq, new CloudCallbackHandler<List<CloudEntity>>() {
+			@Override
+			public void onComplete(List<CloudEntity> results) {
+				str1 = "Price,Currency,Payment,Merchant,Category,Date,Description,Comments\n";
+				appendEx(results);
+				final Calendar c = Calendar.getInstance();
+				int yy = c.get(Calendar.YEAR);
+				int mm = c.get(Calendar.MONTH);
+				int dd = c.get(Calendar.DAY_OF_MONTH);
+				int hh = c.get(Calendar.HOUR);
+				int ii = c.get(Calendar.MINUTE);
+				int ss = c.get(Calendar.SECOND);
+				String curTime = String.format(Locale.getDefault(), "%02d-%02d-%02d", hh, ii, ss);
+				String date = new StringBuilder().append(yy).append("-").append(mm + 1).append("-").append(dd).append("_")
+						.append(curTime).toString();
+				writeFileOnSDCard(str1, getBaseContext(), "ERApp" + "_" + date + ".csv");
+			}
+
+			@Override
+			public void onError(IOException exception) {
+				handleEndpointException(exception);
+			}
+		});
 	}
 
 	/**
@@ -593,17 +594,21 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	 *            Index of CloudEntity object satisfying the range.
 	 * @return A String containing expense data from chosen range.
 	 */
-	private String appendEx(String str1, List<Object> a) {
-		str1 += a.get(0).toString().replaceAll(",", ".") + ",";
-		str1 += a.get(5).toString() + ",";
-		str1 += a.get(7).toString() + ",";
-		str1 += a.get(1).toString().replaceAll(",", ";") + ",";
-		str1 += a.get(9).toString() + ",";
-		str1 += a.get(3).toString() + ",";
-		str1 += a.get(2).toString().replaceAll(",", ";") + ",";
-		str1 += a.get(4).toString().replaceAll(",", ";") + ",";
-		str1 += "\n";
-		return str1;
+	@SuppressWarnings("unchecked")
+	private void appendEx(List<CloudEntity> a) {
+		for (CloudEntity ce : a) {
+			List<Object> ba = (ArrayList<Object>) ce.get("ex");
+			str1 += ba.get(0).toString().replaceAll(",", ".") + ",";
+			str1 += ba.get(5).toString() + ",";
+			str1 += ba.get(7).toString() + ",";
+			str1 += ba.get(1).toString().replaceAll(",", ";") + ",";
+			str1 += ba.get(9).toString() + ",";
+			str1 += ba.get(3).toString() + ",";
+			str1 += ba.get(2).toString().replaceAll(",", ";") + ",";
+			str1 += ba.get(4).toString().replaceAll(",", ";") + ",";
+			str1 += "\n";
+		}
+
 	}
 
 	private static void writeFileOnSDCard(String strWrite, Context context, String fileName) {
@@ -630,6 +635,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					if (path.contains("/storage/")) {
 						path = path.substring(path.indexOf("/storage/") + 8);
 					}
+					progress.dismiss();
 					Toast.makeText(context, "Exported to folder " + path, Toast.LENGTH_LONG).show();
 				} catch (Exception e) {
 					e.printStackTrace();

@@ -424,9 +424,12 @@ public class ExpenseActivity extends Activity implements OnListener {
 		list.add(payment.getSelectedItemPosition());
 		list.add(category.getSelectedItem().toString());
 		list.add(category.getSelectedItemPosition());
-		expense.setCreatedBy(settings.getString("email", ""));
+		expense.setCreatedBy(settings.getString("email", "").toLowerCase(Locale.getDefault()));
 		expense.put("ex", list);
 		expense.put("name", settings.getString("name", ""));
+		String dates = date.getText().toString();
+		expense.put("year", dates.substring(dates.length() - 4, dates.length()));
+		expense.put("month", dates.substring(0, dates.indexOf("/")));
 		if (incomplete) {
 			expense.put("correctable", true);
 		} else if (data.get("display").equals("correct")) {

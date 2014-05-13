@@ -166,7 +166,7 @@ public class LoginActivity extends Activity implements OnListener {
 
 	private void goHome() {
 		SharedPreferences.Editor editor = settings.edit();
-		String email = inputEmail.getText().toString();
+		String email = inputEmail.getText().toString().toLowerCase(Locale.getDefault());
 		editor.putString("email", email);
 		int at = email.indexOf("@");
 		int dot = email.indexOf(".");
