@@ -51,30 +51,24 @@ import com.google.cloud.backend.core.CloudQuery.Scope;
  */
 public class ViewExpensesActivity extends Activity implements OnListener {
 
-	/*
-	 * UI components
-	 */
 	private ListView mExpensesView;
 	private Bundle data;
 	private FragmentManager mFragmentManager;
 	private CloudBackendFragment mProcessingFragment;
-	private static ProgressDialog progress;
 	private CloudEntity ce;
-	private Boolean filtered = false;
-	private int delPos;
-	private SharedPreferences.Editor editor;
-	private Boolean open = true;
 	private String str1;
+	private SharedPreferences.Editor editor;
+	private SharedPreferences settings;
+	private int delPos;
+	private static ProgressDialog progress;
 
 	private static final String PROCESSING_FRAGMENT_TAG = "BACKEND_FRAGMENT";
 	public static final String PREFS_NAME = "MyPrefsFile";
-	private SharedPreferences settings;
 
 	/**
 	 * A list of expenses to be displayed
 	 */
 	private List<CloudEntity> mExpenses = new LinkedList<CloudEntity>();
-	private List<CloudEntity> filteredExpenses = new LinkedList<CloudEntity>();
 
 	/**
 	 * Override Activity lifecycle method.
@@ -130,46 +124,34 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		case R.id.action_sortDate:
 			editor.putString("sort", "_createdAt");
 			editor.commit();
-			List<CloudEntity> dateSort = new LinkedList<CloudEntity>();
-			if (filtered) {
-				dateSort = filteredExpenses;
-			} else {
-				dateSort = mExpenses;
-			}
-			Collections.sort(dateSort, new Comparator<CloudEntity>() {
+			Collections.sort(mExpenses, new Comparator<CloudEntity>() {
 				@Override
 				public int compare(CloudEntity ce1, CloudEntity ce2) {
 					return ce1.getCreatedAt().compareTo(ce2.getCreatedAt());
 				}
 			});
-			Collections.reverse(dateSort);
-			updateExpenseView(dateSort);
+			Collections.reverse(mExpenses);
+			updateExpenseView(mExpenses);
 			this.invalidateOptionsMenu();
 			return true;
 		case R.id.action_sortPrice:
 			editor.putString("sort", "price");
 			editor.commit();
-			List<CloudEntity> priceSort = new LinkedList<CloudEntity>();
-			if (filtered) {
-				priceSort = filteredExpenses;
-			} else {
-				priceSort = mExpenses;
-			}
-			Collections.sort(priceSort, new Comparator<CloudEntity>() {
+			Collections.sort(mExpenses, new Comparator<CloudEntity>() {
 				@Override
 				public int compare(CloudEntity ce1, CloudEntity ce2) {
 					return Double.compare(Double.parseDouble(ce1.get("price").toString()),
 							Double.parseDouble(ce2.get("price").toString()));
 				}
 			});
-			Collections.reverse(priceSort);
-			updateExpenseView(priceSort);
+			Collections.reverse(mExpenses);
+			updateExpenseView(mExpenses);
 			this.invalidateOptionsMenu();
 			return true;
 		case R.id.action_filter:
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			final CharSequence[] items1 = { "Month", "Current year", "Previous year", "All" };
-			final CharSequence[] items2 = { "Month", "Current year", "Previous year", "Employee", "All" };
+			final CharSequence[] items1 = { "Previous month", "Previous year", "Recent" };
+			final CharSequence[] items2 = { "Previous month", "Previous year", "Employee", "Recent" };
 			DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
 
 				@Override
@@ -180,27 +162,33 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					} else {
 						type = items1[which].toString();
 					}
-					if (type.equals("Month")) {
+					if (type.equals("Previous month")) {
+						final CharSequence[] itemsMonth = { "January", "February", "March", "April", "May", "June", "July",
+								"August", "September", "October", "November", "December" };
+						List<String> listMonths = new ArrayList<String>();
+						for (int i = 0; i < Calendar.getInstance().get(Calendar.MONTH); i++) {
+							listMonths.add(itemsMonth[i].toString());
+						}
+						final CharSequence[] prevMonths = listMonths.toArray(new CharSequence[listMonths.size()]);
+						AlertDialog.Builder builder2 = new AlertDialog.Builder(ViewExpensesActivity.this);
+						builder2.setTitle(R.string.title_month).setItems(prevMonths, new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialong, int which) {
+								progress.show();
+								getFiltered(Integer.toString(which + 1), "month");
+							}
+						});
+						builder2.create().show();
+					} else if (type.equals("Previous year")) {
 						final CharSequence[] itemsMonth = { "January", "February", "March", "April", "May", "June", "July",
 								"August", "September", "October", "November", "December" };
 						AlertDialog.Builder builder2 = new AlertDialog.Builder(ViewExpensesActivity.this);
 						builder2.setTitle(R.string.title_month).setItems(itemsMonth, new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialong, int which) {
-								filterEx("month", which, "");
-								editor.putBoolean("filtered", true);
-								editor.putString("filter", "month");
-								editor.putInt("month", which);
-								editor.commit();
+								progress.show();
+								getFiltered(Integer.toString(which + 1), "previousYearMonth");
 							}
 						});
 						builder2.create().show();
-					} else if (type.equals("Current year")) {
-						filterEx("current year", which, "");
-						editor.putBoolean("filtered", true);
-						editor.putString("filter", "year");
-					} else if (type.equals("Previous year")) {
-						filterEx("previous year", which, "");
-						editor.putBoolean("filtered", false);
 					} else if (type.equals("Employee")) {
 						AlertDialog.Builder builder3 = new AlertDialog.Builder(ViewExpensesActivity.this);
 						builder3.setMessage("Enter employee's email:");
@@ -211,19 +199,16 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 
 							@Override
 							public void onClick(DialogInterface dialog, int whichButton) {
-								filterEx("employee", 0, input.getText().toString());
+								progress.show();
+								getFiltered(input.getText().toString().toLowerCase(Locale.getDefault()), "employee");
 							}
 						});
 						builder3.setNegativeButton("Cancel", null);
 						builder3.show();
-						editor.putBoolean("filtered", false);
 					} else {
-						editor.putBoolean("filtered", true);
-						editor.putString("filter", "all");
-						filtered = false;
-						updateExpenseView(mExpenses);
+						progress.show();
+						getFiltered("", "recent");
 					}
-					editor.commit();
 				}
 			};
 			if (settings.getBoolean("employee", false)) {
@@ -235,35 +220,45 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			return true;
 		case R.id.action_export:
 			AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
-			final CharSequence[] items3 = { "Month", "Current year", "Previous year", "All" };
-			final CharSequence[] items4 = { "Month", "Current year", "Previous year", "Employee", "All" };
+			final CharSequence[] items3 = { "Current month", "Previous month", "Current year", "Previous year" };
+			final CharSequence[] items4 = { "Current month", "Previous month", "Current year", "Previous year", "Employee" };
 			DialogInterface.OnClickListener clickListener2 = new DialogInterface.OnClickListener() {
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					progress.show();
 					String type = "";
 					if (settings.getBoolean("admin", false)) {
 						type = items4[which].toString();
 					} else {
 						type = items3[which].toString();
 					}
-					if (type.equals("Month")) {
+					if (type.equals("Current month")) {
+						progress.show();
+						getCSVExpenses("month", Integer.toString(Calendar.getInstance().get(Calendar.MONTH) + 1));
+					} else if (type.equals("Previous month")) {
 						final CharSequence[] itemsMonth = { "January", "February", "March", "April", "May", "June", "July",
 								"August", "September", "October", "November", "December" };
+						List<String> listMonths = new ArrayList<String>();
+						for (int i = 0; i < Calendar.getInstance().get(Calendar.MONTH); i++) {
+							listMonths.add(itemsMonth[i].toString());
+						}
+						final CharSequence[] prevMonths = listMonths.toArray(new CharSequence[listMonths.size()]);
 						AlertDialog.Builder builder2 = new AlertDialog.Builder(ViewExpensesActivity.this);
-						builder2.setTitle(R.string.title_month).setItems(itemsMonth, new DialogInterface.OnClickListener() {
+						builder2.setTitle(R.string.title_month).setItems(prevMonths, new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialong, int which) {
-								String month = Integer.toString(which + 1);
-								createCSV(month, "month");
+								progress.show();
+								getCSVExpenses("month", Integer.toString(which + 1));
 							}
 						});
 						builder2.create().show();
 					} else if (type.equals("Current year")) {
-						createCSV(Integer.toString(Calendar.getInstance().get(Calendar.YEAR)), "year");
+						progress.show();
+						getCSVExpenses("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)));
 					} else if (type.equals("Previous year")) {
-						createCSV(Integer.toString(Calendar.getInstance().get(Calendar.YEAR) - 1), "year");
+						progress.show();
+						getCSVExpenses("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR) - 1));
 					} else if (type.equals("Employee")) {
+						progress.show();
 						AlertDialog.Builder builder3 = new AlertDialog.Builder(ViewExpensesActivity.this);
 						builder3.setMessage("Enter employee's email:");
 						final EditText input = new EditText(ViewExpensesActivity.this);
@@ -271,13 +266,11 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 						builder3.setView(input);
 						builder3.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {
-								createCSV(input.getText().toString().toLowerCase(Locale.getDefault()), "employee");
+								getCSVExpenses("employee", input.getText().toString().toLowerCase(Locale.getDefault()));
 							}
 						});
 						builder3.setNegativeButton("Cancel", null);
 						builder3.show();
-					} else {
-						createCSV("", "all");
 					}
 				}
 			};
@@ -402,7 +395,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		}
 		if (data.get("display").equals("view")) {
 			mProcessingFragment.getCloudBackend().listByKind("ERApp_" + acc, settings.getString("sort", "_createdAt"),
-					Order.DESC, 5000, Scope.PAST, handler);
+					Order.DESC, 300, Scope.PAST, handler);
 		} else if (data.get("display").equals("correct")) {
 			CloudQuery cq = new CloudQuery("ERApp_" + acc);
 			if (!settings.getBoolean("admin", false)) {
@@ -431,22 +424,6 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				});
 				Collections.reverse(mExpenses);
 			}
-			if (data.getString("display").equals("view") && open) {
-				if (settings.getBoolean("filtered", false)) {
-					String fil = settings.getString("filter", "");
-					if (fil.equals("month")) {
-						filterEx("month", settings.getInt("month", 0), "");
-						return;
-					} else if (fil.equals("year")) {
-						filterEx("current year", Calendar.getInstance().get(Calendar.YEAR), "");
-						return;
-					} else if (fil.equals("all")) {
-						expenses = mExpenses;
-						editor.putBoolean("filtered", false);
-						editor.commit();
-					}
-				}
-			}
 			mExpensesView.setAdapter(new ExpensesListAdapter(this, android.R.layout.simple_list_item_1, expenses));
 		} else if (data.get("display").equals("correct")) {
 			progress.dismiss();
@@ -460,78 +437,44 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private void filterEx(String filter, int range, String input) {
-		filteredExpenses = new ArrayList<CloudEntity>();
-		List<Object> a = new ArrayList<Object>();
-		editor.putString("sort", "_createdAt");
-		editor.commit();
-		List<CloudEntity> dateSort = new LinkedList<CloudEntity>();
-		if (filtered) {
-			dateSort = filteredExpenses;
-		} else {
-			dateSort = mExpenses;
+	private void getFiltered(final String range, final String type) {
+		String acc = settings.getString("emailFormatted", "");
+		if (settings.getBoolean("employee", false)) {
+			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");
 		}
-		Collections.sort(dateSort, new Comparator<CloudEntity>() {
+		CloudQuery cq = new CloudQuery("ERApp_" + acc);
+		if (type.equals("month")) {
+			cq.setFilter(Filter.and(Filter.eq("month", range),
+					Filter.in("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)))));
+		} else if (type.equals("employee")) {
+			cq.setFilter(Filter.and(Filter.eq("_createdBy", range),
+					Filter.in("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)))));
+		} else if (type.equals("previousYearMonth")) {
+			cq.setFilter(Filter.and(Filter.eq("month", range),
+					Filter.in("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR) - 1))));
+		} else {
+			cq.setLimit(300);
+		}
+		cq.setScope(Scope.PAST);
+		mProcessingFragment.getCloudBackend().list(cq, new CloudCallbackHandler<List<CloudEntity>>() {
 			@Override
-			public int compare(CloudEntity ce1, CloudEntity ce2) {
-				return ce1.getCreatedAt().compareTo(ce2.getCreatedAt());
+			public void onComplete(List<CloudEntity> results) {
+				mExpenses = results;
+				Collections.sort(mExpenses, new Comparator<CloudEntity>() {
+					@Override
+					public int compare(CloudEntity ce1, CloudEntity ce2) {
+						return ce1.getCreatedAt().compareTo(ce2.getCreatedAt());
+					}
+				});
+				Collections.reverse(mExpenses);
+				updateExpenseView(mExpenses);
+			}
+
+			@Override
+			public void onError(IOException exception) {
+				handleEndpointException(exception);
 			}
 		});
-		Collections.reverse(dateSort);
-		this.invalidateOptionsMenu();
-		for (CloudEntity ce : mExpenses) {
-			a = (ArrayList<Object>) ce.get("ex");
-			String date = a.get(3).toString();
-			if (filter.equals("month")) {
-				if (Integer.parseInt(date.substring(0, date.indexOf("/"))) == range + 1
-						&& Integer.parseInt(date.substring(date.length() - 4, date.length())) == Calendar.getInstance().get(
-								Calendar.YEAR)) {
-					filteredExpenses.add(ce);
-				}
-			} else if (filter.equals("current year")) {
-				if (Integer.parseInt(date.substring(date.length() - 4, date.length())) == Calendar.getInstance().get(
-						Calendar.YEAR)) {
-					filteredExpenses.add(ce);
-				}
-			} else if (filter.equals("previous year")) {
-				if (Integer.parseInt(date.substring(date.length() - 4, date.length())) == Calendar.getInstance().get(
-						Calendar.YEAR) - 1) {
-					filteredExpenses.add(ce);
-				}
-			} else if (filter.equals("employee")) {
-				if (input.equalsIgnoreCase(ce.getCreatedBy())) {
-					filteredExpenses.add(ce);
-				}
-			}
-		}
-		open = false;
-		filtered = true;
-		updateExpenseView(filteredExpenses);
-	}
-
-	/**
-	 * Creates a CSV file with expense data.
-	 * 
-	 * @param range
-	 *            Range such as January, February, 2014, etc.
-	 * @param type
-	 *            Type of category: all, month, or year
-	 */
-	private void createCSV(String range, String type) {
-		if (type.equals("all")) {
-			if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
-				getCSVExpenses("allEmp", settings.getString("email", ""));
-			} else {
-				getCSVExpenses("all", settings.getString("email", ""));
-			}
-		} else if (type.equals("year")) {
-			getCSVExpenses("year", range);
-		} else if (type.equals("month")) {
-			getCSVExpenses("month", range);
-		} else if (type.equals("employee")) {
-			getCSVExpenses("employee", range);
-		}
 	}
 
 	private void getCSVExpenses(final String type, final String range) {
@@ -540,9 +483,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");
 		}
 		CloudQuery cq = new CloudQuery("ERApp_" + acc);
-		if (type.equals("allEmp")) {
-			cq.setFilter(Filter.eq("_createdBy", range));
-		} else if (type.equals("year")) {
+		if (type.equals("year")) {
 			if (settings.getBoolean("employee", false) && !settings.getBoolean("admin", false)) {
 				cq.setFilter(Filter.and(Filter.in("year", range), Filter.eq("_createdBy", settings.getString("email", ""))));
 			} else {
@@ -609,11 +550,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			str1 += ba.get(4).toString().replaceAll(",", ";") + ",";
 			str1 += "\n";
 		}
-
 	}
 
 	private static void writeFileOnSDCard(String strWrite, Context context, String fileName) {
-
 		try {
 			if (isSdReadable()) {
 				File myFile = new File(Environment.getExternalStorageDirectory() + "/ERApp");
