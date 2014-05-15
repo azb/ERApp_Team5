@@ -55,7 +55,7 @@ public class LoginActivity extends Activity implements OnListener {
 		this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.activity_login);
 		PRNGFixes.apply();
-		
+
 		mFragmentManager = getFragmentManager();
 		settings = getSharedPreferences(PREFS_NAME, 0);
 

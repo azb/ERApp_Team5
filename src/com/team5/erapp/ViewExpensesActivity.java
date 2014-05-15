@@ -234,7 +234,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 					}
 					if (type.equals("Current month")) {
 						progress.show();
-						getCSVExpenses("month", Integer.toString(Calendar.getInstance().get(Calendar.MONTH) + 1));
+						createCSV("month", Integer.toString(Calendar.getInstance().get(Calendar.MONTH) + 1));
 					} else if (type.equals("Previous month")) {
 						final CharSequence[] itemsMonth = { "January", "February", "March", "April", "May", "June", "July",
 								"August", "September", "October", "November", "December" };
@@ -247,16 +247,16 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 						builder2.setTitle(R.string.title_month).setItems(prevMonths, new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialong, int which) {
 								progress.show();
-								getCSVExpenses("month", Integer.toString(which + 1));
+								createCSV("month", Integer.toString(which + 1));
 							}
 						});
 						builder2.create().show();
 					} else if (type.equals("Current year")) {
 						progress.show();
-						getCSVExpenses("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)));
+						createCSV("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)));
 					} else if (type.equals("Previous year")) {
 						progress.show();
-						getCSVExpenses("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR) - 1));
+						createCSV("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR) - 1));
 					} else if (type.equals("Employee")) {
 						progress.show();
 						AlertDialog.Builder builder3 = new AlertDialog.Builder(ViewExpensesActivity.this);
@@ -266,7 +266,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 						builder3.setView(input);
 						builder3.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int whichButton) {
-								getCSVExpenses("employee", input.getText().toString().toLowerCase(Locale.getDefault()));
+								createCSV("employee", input.getText().toString().toLowerCase(Locale.getDefault()));
 							}
 						});
 						builder3.setNegativeButton("Cancel", null);
@@ -336,7 +336,8 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				startActivity(i);
 			}
 		});
-		if (data.get("display").equals("correct")) {
+		if (settings.getBoolean("admin", false) || !settings.getBoolean("employee", false)
+				|| data.get("display").equals("correct")) {
 			mExpensesView.setOnItemLongClickListener(new ListView.OnItemLongClickListener() {
 
 				@Override
@@ -410,9 +411,9 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 	}
 
 	private void updateExpenseView(List<CloudEntity> expenses) {
+		progress.dismiss();
 		TextView emptyView = (TextView) findViewById(R.id.no_expenses);
 		if (!expenses.isEmpty()) {
-			progress.dismiss();
 			emptyView.setVisibility(View.GONE);
 			mExpensesView.setVisibility(View.VISIBLE);
 			if (data.getString("display").equals("correct")) {
@@ -426,12 +427,10 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 			}
 			mExpensesView.setAdapter(new ExpensesListAdapter(this, android.R.layout.simple_list_item_1, expenses));
 		} else if (data.get("display").equals("correct")) {
-			progress.dismiss();
 			mExpensesView.setVisibility(View.GONE);
 			emptyView.setText("No expenses to correct");
 			emptyView.setVisibility(View.VISIBLE);
 		} else {
-			progress.dismiss();
 			mExpensesView.setVisibility(View.GONE);
 			emptyView.setVisibility(View.VISIBLE);
 		}
@@ -449,6 +448,7 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		} else if (type.equals("employee")) {
 			cq.setFilter(Filter.and(Filter.eq("_createdBy", range),
 					Filter.in("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR)))));
+			cq.setLimit(300);
 		} else if (type.equals("previousYearMonth")) {
 			cq.setFilter(Filter.and(Filter.eq("month", range),
 					Filter.in("year", Integer.toString(Calendar.getInstance().get(Calendar.YEAR) - 1))));
@@ -463,7 +463,12 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 				Collections.sort(mExpenses, new Comparator<CloudEntity>() {
 					@Override
 					public int compare(CloudEntity ce1, CloudEntity ce2) {
-						return ce1.getCreatedAt().compareTo(ce2.getCreatedAt());
+						if (settings.getString("sort", "").equals("price")) {
+							return Double.compare(Double.parseDouble(ce1.get("price").toString()),
+									Double.parseDouble(ce2.get("price").toString()));
+						} else {
+							return ce1.getCreatedAt().compareTo(ce2.getCreatedAt());
+						}
 					}
 				});
 				Collections.reverse(mExpenses);
@@ -477,7 +482,15 @@ public class ViewExpensesActivity extends Activity implements OnListener {
 		});
 	}
 
-	private void getCSVExpenses(final String type, final String range) {
+	/**
+	 * Retrieves cloud entities with specified range
+	 * 
+	 * @param type
+	 *            month, year, employee, or recent
+	 * @param range
+	 *            the month, year, or employee
+	 */
+	private void createCSV(final String type, final String range) {
 		String acc = settings.getString("emailFormatted", "");
 		if (settings.getBoolean("employee", false)) {
 			acc = "Co_" + settings.getString("company", "").replaceAll(" ", "_");

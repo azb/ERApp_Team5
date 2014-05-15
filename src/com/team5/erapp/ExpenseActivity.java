@@ -98,7 +98,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_expenses);
+		setContentView(R.layout.activity_expense);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
@@ -240,7 +240,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 			} else if (resultCode == RESULT_CANCELED) {
 			}
 		}
-		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK && null != data) {
+		if (requestCode == SELECT_IMAGE && resultCode == RESULT_OK && data != null) {
 			fileUri = data.getData();
 			String[] filePathColumn = { MediaStore.Images.Media.DATA };
 			Cursor cursor = getContentResolver().query(fileUri, filePathColumn, null, null, null);
@@ -336,9 +336,7 @@ public class ExpenseActivity extends Activity implements OnListener {
 				Bitmap bitmap = d.getBitmap();
 				bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
 				byte[] image = stream.toByteArray();
-
 				final ParseFile file = new ParseFile("receipt.jpeg", image);
-
 				file.saveInBackground();
 				ParseObject ex = new ParseObject("Expns_" + acc);
 				ex.put("pic", file);
@@ -442,6 +440,9 @@ public class ExpenseActivity extends Activity implements OnListener {
 	 * Sets existing data into fields if correcting or viewing an expense.
 	 */
 	private void setInputs() {
+		if (data.getBoolean("hasPic")) {
+			new DownloadImageTask(photoImage).execute(data.getString("pic"));
+		}
 		if (data.get("price").toString().equals("-1.0")) {
 			price.setText("");
 		} else {
@@ -457,10 +458,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 		currency.setSelection((int) Double.parseDouble(data.get("currency").toString()));
 		category.setSelection((int) Double.parseDouble(data.get("category").toString()));
 		payment.setSelection((int) Double.parseDouble(data.get("payment").toString()));
-
-		if (data.getBoolean("hasPic")) {
-			new DownloadImageTask(photoImage).execute(data.getString("pic"));
-		}
 
 		if (data.get("display").equals("view")) {
 			setTitle("Expense");
@@ -484,10 +481,6 @@ public class ExpenseActivity extends Activity implements OnListener {
 			category.setClickable(false);
 			payment.setClickable(false);
 		}
-	}
-
-	private boolean isEmpty(EditText etText) {
-		return etText.getText().toString().trim().length() == 0;
 	}
 
 	private void initiateFragments() {
@@ -542,6 +535,10 @@ public class ExpenseActivity extends Activity implements OnListener {
 				newPhoto = true;
 			}
 		}
+	}
+
+	private boolean isEmpty(EditText etText) {
+		return etText.getText().toString().trim().length() == 0;
 	}
 
 	/**
